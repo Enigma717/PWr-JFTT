@@ -1,5 +1,5 @@
 %{
-    #include "zad1.tab.h"
+    #include "zad1bison.h"
 
     int yylex();
 %}
@@ -10,13 +10,14 @@
 
 %%
 
+[ \t]           ;
 ^#(.|\\\n)*\n   ;
 \\\n            ;
-[ \t]+          ;
 [0-9]+          { 
-                    yylval = atoi(yytext);
+                    yylval.lli = atoi(yytext);
                     return NUM; 
                 }
+
 \+              return '+';
 \-              return '-';
 \*              return '*';
@@ -25,5 +26,6 @@
 \(              return '(';
 \)              return ')';
 \n              return LF;
+.               return SYNTAX_ERROR;
 
 %%
