@@ -151,7 +151,7 @@ int main()
 
     yyparse();
 
-    printf("EOF - exitting the app\n");
+    printf("EOF found - exiting from program\n");
 
     free(error_message);
     free(result_rpn);
