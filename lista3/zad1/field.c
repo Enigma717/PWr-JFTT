@@ -5,7 +5,6 @@
 const long long int ORDER = 1234577;
 
 
-
 long long int f_add(long long int x, long long int y, long long int order)
 {
     long long int result = (x + y) % order;
@@ -34,9 +33,9 @@ long long int f_div(long long int x, long long int y, long long int order)
     return result;
 }
 
-long long int f_pow(long long int value, long long int exponent, long long int order)
+long long int f_pow(long long int base, long long int exponent, long long int order)
 {
-    long long int x = value;
+    long long int x = base;
     long long int y = 1;
     long long int n = exponent;
 
