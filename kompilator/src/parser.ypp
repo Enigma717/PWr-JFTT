@@ -1,0 +1,145 @@
+%{
+    #include <iostream>
+    #include <string>
+
+    extern int yylineno;
+    extern int yylex();
+    extern int yyparse();
+    extern void yyerror(std::string s);
+%}
+
+
+%union {
+    std::string str;
+    long long int lli;
+}
+
+
+%token <str> T_PROCEDURE
+%token <str> T_PROGRAM
+%token <str> T_IS
+%token <str> T_VAR
+%token <str> T_BEGIN
+%token <str> T_END
+%token <str> T_IF
+%token <str> T_THEN
+%token <str> T_ELSE
+%token <str> T_ENDIF
+%token <str> T_WHILE
+%token <str> T_DO
+%token <str> T_ENDWHILE
+%token <str> T_REPEAT
+%token <str> T_UNTIL
+%token <str> T_READ
+%token <str> T_WRITE
+
+%token <str> T_EQ
+%token <str> T_NE
+%token <str> T_GT
+%token <str> T_LT
+%token <str> T_GE
+%token <str> T_LE
+
+%token <str> T_ADD
+%token <str> T_SUB
+%token <str> T_MUL
+%token <str> T_DIV
+%token <str> T_MOD
+%token <str> T_LPAR
+%token <str> T_RPAR
+
+%token <str> T_IDENTIFIER
+%token <lli> T_NUM
+
+%token <str> T_ASSIGN
+%token <str> T_COMMA
+%token <str> T_SEMICOLON
+%token <str> T_COLON
+
+
+%type <str> procedures
+%type <str> main
+%type <str> commands
+%type <str> command
+%type <str> proc_head
+%type <str> declarations
+%type <str> expression
+%type <str> condition
+%type <str> value
+
+
+%%
+
+program_all:
+    procedures main
+    ;
+
+procedures:
+    procedures T_PROCEDURE proc_head T_IS T_VAR declarations T_BEGIN commands T_END
+    | procedures T_PROCEDURE proc_head T_IS T_BEGIN commands T_END
+    |
+    ;
+
+main:
+    T_PROGRAM T_IS T_VAR declarations T_BEGIN commands T_END
+    | T_PROGRAM T_IS T_BEGIN commands T_END
+    ;
+
+commands:
+    commands command
+    | command
+    ;
+
+command:
+    T_IDENTIFIER T_ASSIGN expression T_SEMICOLON
+    | T_IF condition T_THEN commands T_ELSE commands T_ENDIF
+    | T_IF condition T_THEN commands T_ENDIF
+    | T_WHILE condition T_DO commands T_ENDWHILE
+    | T_REPEAT commands T_UNTIL condition T_SEMICOLON
+    | proc_head T_SEMICOLON
+    | T_READ T_IDENTIFIER T_SEMICOLON
+    | T_WRITE T_NUM T_SEMICOLON
+    ;
+
+proc_head:
+    T_IDENTIFIER T_LPAR declarations T_RPAR
+    ;
+
+declarations:
+    declarations T_COMMA T_IDENTIFIER
+    | T_IDENTIFIER
+    ;
+
+expression:
+    value
+    | value T_ADD value
+    | value T_SUB value
+    | value T_MUL value
+    | value T_DIV value
+    | value T_MOD value
+    ;
+
+condition:
+    value T_EQ value
+    | value T_NE value
+    | value T_GT value
+    | value T_LT value
+    | value T_GE value
+    | value T_LE value
+    ;
+
+value:
+    T_NUM
+    | T_IDENTIFIER
+    ;
+
+
+%%
+
+void yyerror(std::string s)
+{
+    std::cerr << "Linia nr " << yylineno << ": " << s << "\n";
+    exit(-1);
+}
+
+
