@@ -4,9 +4,9 @@
     #include <fstream>
     #include "parser.hpp"
 
-    int yylex();
+    using std::cout;
 
-    using namespace std;
+    int yylex();
 %}
 
 
@@ -77,7 +77,7 @@ SPACE           " "
 ")"             { ECHO; return T_RPAR; }
 
 
-.               cout << "Unknown token";
+.               return T_ERROR;
 
 %%
 

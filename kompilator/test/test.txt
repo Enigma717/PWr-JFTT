@@ -1,0 +1,10 @@
+PROGRAM IS
+VAR x
+BEGIN
+    x := 1 + 3;
+    x := 1 - 3;
+    x := 1 * 3;
+    x := 1 / 3;
+    x := 1 % 3;
+    2 + 4;
+END
