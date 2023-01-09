@@ -1,3 +1,12 @@
+/*
+    Autor:      Marek Traczyński (261748)
+    Kurs:       Języki Formalne i Techniki Translacji
+    Projekt:    Kompilator
+    Opis pliku: Operacje arytmetyczne
+*/
+
+
+
 long long int COM_add(long long int x, long long int y)
 {
     long long int result = x + y;

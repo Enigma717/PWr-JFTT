@@ -1,3 +1,11 @@
+/*
+    Autor:      Marek Traczyński (261748)
+    Kurs:       Języki Formalne i Techniki Translacji
+    Projekt:    Kompilator
+    Opis pliku: Parser
+*/
+
+
 %{
     #include <iostream>
     #include <string>
