@@ -11,18 +11,20 @@
 
 
 #include <string>
+#include <unordered_map>
+
+#include "./variable.h"
 
 
-class Procedure {
+class Procedure : public SymTableNode {
 public:
-    std::string   mProcIdentifier;
-    long long int mProcMemoryIndex;
-    bool          mIsInitialized;
-
-    unordered_map<std::string, Variable> mLocalVariables;
+    std::string                             mProcIdentifier;
+    unordered_map<std::string, Variable>    mLocalVariables;
 
 
-    Procedure(std::string procId, long long int procMemIndex, bool initFlag);
+    Procedure(std::string name) : mProcIdentifier(name) {}
+    Procedure(std::string name, unordered_map<std::string, Variable> vars) :
+        mProcIdentifier(name), mLocalVariables(vars) {}
 }
 
 

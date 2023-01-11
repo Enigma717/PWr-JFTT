@@ -3,6 +3,6 @@
 **/examples2022
 
 **/src/compiler
-**/src/lexer.cpp
-**/src/parser.cpp
-**/src/parser.hpp
+**/src/frontend/lexer.c
+**/src/frontend/parser.cpp
+**/src/frontend/parser.hpp

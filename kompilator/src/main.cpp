@@ -11,12 +11,18 @@
 using std::cout;
 
 
+extern int yydebug;
 extern void run_lexer(FILE *file);
 extern void run_parser(FILE *file);
 
 
 int main(int argc, char** argv)
 {
+    #if YYDEBUG
+        yydebug = 1;
+    #endif
+
+
     if (argc < 2)
     {
         cout << "No file\n";

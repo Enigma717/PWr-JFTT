@@ -11,18 +11,18 @@
 
 
 #include <string>
-#include <unordered_map>
+
+#include "./symtabnode.h"
 
 
-class Variable {
+class Variable : public SymTableNode {
 public:
-    std::string   mVarIdentifier;
-    bool          mIsInitialized;
-    long long int mVarMemoryIndex;
-    Variable(name);
+    std::string     mVarIdentifier;
+    long long int   mVarValue;
+
+    Variable(std::string name, long long int value) : 
+        mVarIdentifier(name), mVarValue(value) {}
 }
-
-
 
 
 #endif
