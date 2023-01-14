@@ -187,6 +187,7 @@ NUMBER                      [0-9]+
                                     yylval.tab_index = index;
                                 }
 
+
                                 ECHO;   
                                 return T_NUM; 
                             }

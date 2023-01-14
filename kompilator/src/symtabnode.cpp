@@ -16,9 +16,7 @@ Variable::Variable(string name) : mVarIdentifier(name)
 
 
 Procedure::Procedure(string name, int index) : 
-    mProcIdentifier(name), mProcMemoryIndex(index) 
-{
-}
+    mProcIdentifier(name), mProcMemoryIndex(index) {}
 
 
 SymTabNode::SymTabNode(Procedure proc) :
