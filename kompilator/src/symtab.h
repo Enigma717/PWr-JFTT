@@ -2,27 +2,29 @@
     Autor:      Marek Traczyński (261748)
     Kurs:       Języki Formalne i Techniki Translacji
     Projekt:    Kompilator
-    Opis pliku: Klasa tablicy symboli (header)
+    Opis pliku: Implementacja tablicy symboli (header)
 */
 
 
-#ifndef SYMTABLE_H
-#define SYMTABLE_H
+#ifndef SYMTAB_H
+#define SYMTAB_H
 
 
-#include <string>
-#include <unordered_map>
-
-#include "./procedure.h"
+#include <vector>
 
 
-class SymTable {
-public:
-    unordered_map<std::string, SymTableNode> symbolTable; 
+using std::vector;
 
-    SymTable() {}
-}
 
+vector<SymTabNode> symbolTable;
+
+
+int insertProcToSymTab(string identifier);
+int insertVarToSymTab(string identifier);
+int insertNumToSymTab(string numberString);
+
+int seekNodeInSymTab(string identifier);
+int seekNodeInSymTab(string identifier, int scope);
 
 
 

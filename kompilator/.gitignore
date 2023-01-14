@@ -3,6 +3,7 @@
 **/examples2022
 
 **/src/compiler
+**/src/grammarbackup.txt
 **/src/frontend/lexer.c
 **/src/frontend/parser.cpp
 **/src/frontend/parser.hpp
