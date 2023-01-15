@@ -7,21 +7,13 @@
 
 
 %{
-    #include <iostream>
-    #include <string>
-    #include <fstream>
-    #include <map>
-
     #include "../symtab.cpp"
     #include "./parser.hpp"
 
     extern string currentProc;
 
-    using std::cout;
-
-    int yylex();
-
     extern int argCount;
+
     int scope = 0;
     int paramCount = 0;
 %}
@@ -98,14 +90,14 @@ NUMBER                      [0-9]+
                                 string procId(yytext, yyleng);
                                 paramCount = 0;
 
-                                if (seekNodeInSymTab(procId) == -1)
+                                if (seekNodeInSymTab(symbolTable, procId) == -1)
                                 {
-                                    yylval.tab_index = insertProcToSymTab(procId);
+                                    yylval.tab_index = insertProcToSymTab(symbolTable, procId);
                                 }
                                 else
                                 {
                                     string errorMsg = "Redeklaracja procedury \'" + procId + "\'";
-                                    yyerror(errorMsg);
+                                    yyerror(symbolTable, programTree, errorMsg);
                                 }
 
                                 ECHO;
@@ -119,14 +111,14 @@ NUMBER                      [0-9]+
                                 string varId(yytext, yyleng);
                                 paramCount++;
     
-                                if (seekNodeInSymTab(varId, scope) == -1)
+                                if (seekNodeInSymTab(symbolTable, varId, scope) == -1)
                                 {
-                                    yylval.tab_index = insertVarToSymTab(varId);
+                                    yylval.tab_index = insertVarToSymTab(symbolTable, varId);
                                 }
                                 else
                                 {
                                     string errorMsg = "Redeklaracja zmiennej \'" + varId + "\'";
-                                    yyerror(errorMsg);
+                                    yyerror(symbolTable, programTree, errorMsg);
                                 }
 
                                 ECHO;
@@ -144,7 +136,7 @@ NUMBER                      [0-9]+
 
     /* Odczytanie maina */
 <BEGIN_MAIN>"IS"            { 
-                                yylval.tab_index = insertProcToSymTab("main"); 
+                                yylval.tab_index = insertProcToSymTab(symbolTable, "main"); 
 
                                 BEGIN(0);
                                 return T_IS;
@@ -155,14 +147,14 @@ NUMBER                      [0-9]+
 <VAR_DECLARE>{IDENTIFIER}   {
                                 string varId(yytext, yyleng);
 
-                                if (seekNodeInSymTab(varId, scope) == -1)
+                                if (seekNodeInSymTab(symbolTable, varId, scope) == -1)
                                 {
-                                    yylval.tab_index = insertVarToSymTab(varId);
+                                    yylval.tab_index = insertVarToSymTab(symbolTable, varId);
                                 }
                                 else
                                 {
                                     string errorMsg = "Redeklaracja zmiennej \'" + varId + "\'";
-                                    yyerror(errorMsg);
+                                    yyerror(symbolTable, programTree, errorMsg);
                                 }
 
                                 ECHO;
@@ -176,11 +168,11 @@ NUMBER                      [0-9]+
 {NUMBER}                    { 
                                 string numId(yytext, yyleng);
 
-                                int index = seekNodeInSymTab(numId);
+                                int index = seekNodeInSymTab(symbolTable, numId);
 
                                 if (index == -1)
                                 {
-                                    yylval.tab_index = insertNumToSymTab(numId);
+                                    yylval.tab_index = insertNumToSymTab(symbolTable, numId);
                                 }
                                 else
                                 {
@@ -200,7 +192,7 @@ NUMBER                      [0-9]+
                                 string procId(yytext, yyleng);
                                 procId.pop_back();
 
-                                int index = seekNodeInSymTab(procId);
+                                int index = seekNodeInSymTab(symbolTable, procId);
 
                                 if (index != -1)
                                 {
@@ -209,7 +201,7 @@ NUMBER                      [0-9]+
                                 else
                                 {
                                     string errorMsg = "Użycie niezadeklarowanej procedury \'" + procId + "\'";
-                                    yyerror(errorMsg);
+                                    yyerror(symbolTable, programTree, errorMsg);
                                 }
 
                                 ECHO;
@@ -220,7 +212,7 @@ NUMBER                      [0-9]+
 {IDENTIFIER}                { 
                                 string varId(yytext, yyleng);
 
-                                int index = seekNodeInSymTab(varId, scope);
+                                int index = seekNodeInSymTab(symbolTable, varId, scope);
                                 if (index != -1)
                                 {
                                     yylval.tab_index = index;
@@ -228,7 +220,7 @@ NUMBER                      [0-9]+
                                 else
                                 {
                                     string errorMsg = "Użycie niezadeklarowanej zmiennej \'" + varId + "\'";
-                                    yyerror(errorMsg);
+                                    yyerror(symbolTable, programTree, errorMsg);
                                 }
 
                                 ECHO;
@@ -237,18 +229,7 @@ NUMBER                      [0-9]+
 
 
     /* Pozostałe znaki */
-.                           { yyerror("Nieznany symbol"); }
+.                           { yyerror(symbolTable, programTree, "Nieznany symbol"); }
 
 %%
 
-
-void run_lexer(FILE *file)
-{
-    cout << "Starting lexing...\n\n";
-
-    yyin = file;
-
-    while(yylex());
-
-    cout << "\n";
-}

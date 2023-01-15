@@ -7,42 +7,39 @@
 
 %code requires { 
     #include "../astree.h"
+    #include <vector>
     
-    extern void yyerror(string s);
+    extern void yyerror(vector<SymTabNode> &symbolTable, ASTree &programTree, string s);
+}
+
+%code provides {
+    #define YY_DECL \
+        int yylex(vector<SymTabNode> &symbolTable, ASTree &programTree)
+    YY_DECL;
 }
 
 %{
     #include <iostream>
-    #include <string>
     #include <vector>
-
-    #include "../arithmetic.cpp"
-    #include "../symtabnode.cpp"
+    
     #include "../astree.cpp"
+    #include "../symtab.h"
 
-
-    using std::cout, std::vector;
-
+    using std::vector;
 
     extern int yylineno;
     extern FILE* yyin;
-
-    extern int yylex();
-    extern int yyparse();
-    extern void yyerror(string s);
-
 
     const string kColorReset = "\033[0m";
     const string kColorRed   = "\033[31m";
     const string kColorGreen = "\033[32m";
 
-    extern vector<ASTree> ASTreeTable;
-    extern ASTree *programASTree;
-
     int argCount = 0;
 %}
 
 
+%lex-param {vector<SymTabNode> &symbolTable} {ASTree &programTree}
+%parse-param {vector<SymTabNode> &symbolTable} {ASTree &programTree}
 
 %union {
     int                     token;
@@ -85,24 +82,7 @@
 %%
 
 program_all:
-    procedures main     {
-                            startProgram($1, $2);
-                            
-                            cout << "\n\nSymbol Table: ";
-                            for (SymTabNode node : symbolTable)
-                            {
-                                cout << "\n>> Variable -> type: " << node.mNodeType 
-                                     << "\tID: " << node.mNodeIdentifier 
-                                     << "\t\tValue: " << node.mNodeValue 
-                                     << "\tIndex: " << node.mNodeIndex
-                                     << "\tParamCount: " << node.mNodeParamCount; 
-                            }
-
-
-                            cout << "\n\nFinal program ASTree:\n";
-                            printPreorder(programASTree, 0);
-
-                        }
+    procedures main     { programTree = startProgram($1, $2); }
     ;
 
 procedures:
@@ -123,6 +103,7 @@ commands:
 
 command:
     T_IDENTIFIER T_ASSIGN expression T_SEMICOLON                    { 
+                                                                        /* do usunięcia */
                                                                         if (!(($3->mTreeBranches).empty()))
                                                                         {
                                                                             ASTree *treeBranch1 = $3->mTreeBranches[0];
@@ -151,7 +132,8 @@ command:
                                                                         {
                                                                             symbolTable[$1].mNodeValue = symbolTable[$3->mTreeMemoryIndex].mNodeValue;
                                                                         }
-                                                                        
+                                                                        /* do usunięcia */
+
                                                                         ASTree *variable = newTreeValue(ASTree::kIdentifier, $1); 
                                                                         $$ = newTreeBranch(ASTree::kAssign, variable, $3);
                                                                     }
@@ -172,7 +154,7 @@ proc_call:
                                                     if (argCount != symbolTable[$1].mNodeParamCount) 
                                                     { 
                                                         string errorMsg = "Nieprawidłowa liczba argumentów dla procedury \'" + symbolTable[$1].mNodeIdentifier + "\'";
-                                                        yyerror(errorMsg);
+                                                        yyerror(symbolTable, programTree, errorMsg);
                                                     }
 
                                                     ASTree *procId = newTreeValue(ASTree::kIdentifier, $1); 
@@ -237,7 +219,7 @@ value:
                                         if (symbolTable[$1].mNodeValue < 0) 
                                         { 
                                             string errorMsg = "Użycie niezadeklarowanej/niezainicjalizowanej zmiennej \'" + symbolTable[$1].mNodeIdentifier + "\'";
-                                            yyerror(errorMsg);
+                                            yyerror(symbolTable, programTree, errorMsg);
                                         } 
                                         $$ = newTreeValue(ASTree::kIdentifier, $1); 
                                     }
@@ -248,20 +230,20 @@ value:
 
 
 
-void yyerror(string s)
+void yyerror(vector<SymTabNode> &symbolTable, ASTree &programTree, string s)
 {
     std::cerr << kColorRed << "\n\t[ERROR] Linia nr " << yylineno << ": " << kColorGreen << s << kColorReset << "\n";
     exit(1);
 }
 
 
-void run_parser(FILE *file)
+void run_parser(FILE *file, vector<SymTabNode> &symbolTable, ASTree &programTree)
 {
-    cout << "Starting parsing...\n\n";
+    std::cout << "Starting parsing...\n\n";
 
     yyin = file;
 
-    yyparse();
+    yyparse(symbolTable, programTree);
 
-    cout << "\n";
+    std::cout << "\n";
 }

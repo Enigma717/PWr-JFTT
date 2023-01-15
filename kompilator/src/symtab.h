@@ -11,21 +11,20 @@
 
 
 #include <vector>
-
+#include "./symtabnode.h"
 
 using std::vector;
 
 
-vector<SymTabNode> symbolTable;
+// vector<SymTabNode> symbolTable;
 
 
-int insertProcToSymTab(string identifier);
-int insertVarToSymTab(string identifier);
-int insertNumToSymTab(string numberString);
+int insertProcToSymTab(vector<SymTabNode> &symTab, string identifier);
+int insertVarToSymTab(vector<SymTabNode> &symTab, string identifier);
+int insertNumToSymTab(vector<SymTabNode> &symTab, string numberString);
 
-int seekNodeInSymTab(string identifier);
-int seekNodeInSymTab(string identifier, int scope);
-
+int seekNodeInSymTab(vector<SymTabNode> &symTab, string identifier);
+int seekNodeInSymTab(vector<SymTabNode> &symTab, string identifier, int scope);
 
 
 #endif

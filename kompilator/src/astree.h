@@ -15,7 +15,6 @@
 #include <vector>
 #include <initializer_list>
 
-
 using std::string, std::map;
 using std::vector, std::initializer_list;
 
@@ -70,17 +69,19 @@ public:
 };
 
 
+void printPreorder(ASTree *tree, int depth);
 
-void startProgram(ASTree *procs, ASTree *main);
+ASTree startProgram(ASTree *procs, ASTree *main);
 
 ASTree *newTreeValue(ASTree::TreeType type, int index);
-ASTree *newTreeStatement(ASTree::TreeType type);
-ASTree *newTreeStatement(ASTree::TreeType type, ASTree *arg);
-ASTree *newTreeStatement(ASTree::TreeType type, ASTree *firstArg, ASTree *secondArg);
+ASTree *newTreeBranch(ASTree::TreeType type);
+ASTree *newTreeBranch(ASTree::TreeType type, ASTree *arg);
+ASTree *newTreeBranch(ASTree::TreeType type, ASTree *firstArg, ASTree *secondArg);
 
 ASTree *addProcedure(ASTree *procs, ASTree *head, ASTree *comms);
 ASTree *addProcedure(ASTree *procs, ASTree *head, ASTree *vars, ASTree *comms);
 ASTree *addDeclaration(ASTree *head, ASTree *var);
 ASTree *addCommand(ASTree *commands, ASTree *command);
+
 
 #endif

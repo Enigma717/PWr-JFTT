@@ -6,78 +6,9 @@
 */
 
 
+
 #include "./astree.h"
 
-
-extern vector<SymTabNode> symbolTable;
-
-ASTree *programASTree;
-
-map<ASTree::TreeType, std::string> enumStrings = {
-    {ASTree::kIdentifier, "Identifier"},
-    {ASTree::kNumber, "Number"},
-    {ASTree::kEqual,  "Equal"},
-    {ASTree::kNotEqual,  "NotEqual"},
-    {ASTree::kGreater,  "Greater"},
-    {ASTree::kLess,  "Less"},
-    {ASTree::kGreaterEqual,  "GreaterEqual"},
-    {ASTree::kLessEqual, "LessEqual"},
-    {ASTree::kAddition, "Add"},
-    {ASTree::kSubtraction,  "Sub"},
-    {ASTree::kMultiplication,  "Mul"},
-    {ASTree::kDivision,  "Div"},
-    {ASTree::kModulo, "Mod"},
-    {ASTree::kDeclarations,  "Declarations"},
-    {ASTree::kParameters,  "Parameters"},
-    {ASTree::kNewProcedure,  "NewProc"},
-    {ASTree::kCallProcedure, "CallProc"},
-    {ASTree::kWrite, "Write"},
-    {ASTree::kRead, "Read"},
-    {ASTree::kCall, "Call"},
-    {ASTree::kAssign, "Assign"},
-    {ASTree::kRepeatLoop,  "Repeat"},
-    {ASTree::kWhileLoop, "While"},
-    {ASTree::kIfCond, "If"},
-    {ASTree::kIfElseCond, "IfElse"},
-    {ASTree::kCommand, "Command"},
-    {ASTree::kCommands, "Commands"},
-    {ASTree::kMain, "Main"},
-    {ASTree::kProcedures, "Procedures"},
-    {ASTree::kProgram, "Program"}
-};
-
-void printPreorder(ASTree *tree, int depth)
-{
-    if (tree == NULL)
-    {
-        return;
-    }
-
-    std::cout << "DEPTH: " << depth;
-
-    for (int i = 0; i <= depth; i++)
-    {
-        std::cout << "    ";
-    }
-
-    std::cout << ">> " << enumStrings[tree->mTreeType] 
-              << "\t\tIndex: " << tree->mTreeMemoryIndex
-              << "\tBranchesCount: " << tree->mTreeBranchesCount;
-    if (tree->mTreeMemoryIndex != -1)
-    {
-        std::cout << "\t-> Var ID: " << symbolTable[tree->mTreeMemoryIndex].mNodeIdentifier
-                  << "\tVar value: " << symbolTable[tree->mTreeMemoryIndex].mNodeValue;
-    }
-    std::cout << "\n";
-    
-    
-    depth++;
-
-    for (ASTree *subTree : tree->mTreeBranches)
-    {
-        printPreorder(subTree, depth);
-    }
-}
 
 ////////////////////////////////////
 
@@ -93,12 +24,13 @@ ASTree::ASTree(ASTree::TreeType type, int index, int branchesCount, initializer_
 
 ////////////////////////////////////
 
-void startProgram(ASTree *procs, ASTree *main)
+ASTree startProgram(ASTree *procs, ASTree *main)
 {
-    ASTree *program = new ASTree(ASTree::kProgram, -1, 2, {procs, main});
+    ASTree program(ASTree::kProgram, -1, 2, {procs, main});
 
-    programASTree = program;
+    return program;
 }
+
 
 ////////////////////////////////////
 
@@ -130,6 +62,7 @@ ASTree *newTreeBranch(ASTree::TreeType type, ASTree *firstArg, ASTree *secondArg
     
     return statement;
 }
+
 
 ////////////////////////////////////
 

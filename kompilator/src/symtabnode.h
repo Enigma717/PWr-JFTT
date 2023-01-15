@@ -38,8 +38,8 @@ class SymTabNode {
 public:
     enum NodeType {
         kProcedure = 1, 
-        kVariable, 
-        kNumber
+        kVariable = 2, 
+        kNumber = 3
     };
 
     NodeType        mNodeType;

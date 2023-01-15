@@ -8,57 +8,57 @@
 
 #include <algorithm>
 
-#include "./symtabnode.h"
+#include "./symtabnode.cpp"
 #include "./symtab.h"
 
 
-int insertProcToSymTab(string identifier)
+int insertProcToSymTab(vector<SymTabNode> &symTab, string identifier)
 {
-    int memoryIndex = symbolTable.size();
+    int memoryIndex = symTab.size();
 
     Procedure proc(identifier, memoryIndex);
     SymTabNode node(proc);
 
-    symbolTable.push_back(node);
+    symTab.push_back(node);
 
     return memoryIndex;
 }
 
-int insertVarToSymTab(string identifier)
+int insertVarToSymTab(vector<SymTabNode> &symTab, string identifier)
 {
-    int memoryIndex = symbolTable.size();
+    int memoryIndex = symTab.size();
 
     Variable var(identifier);
     SymTabNode node(var);
 
     node.mNodeIndex = memoryIndex;
-    symbolTable.push_back(node);
+    symTab.push_back(node);
 
     return memoryIndex;
 }
 
-int insertNumToSymTab(string numberString)
+int insertNumToSymTab(vector<SymTabNode> &symTab, string numberString)
 {
-    int memoryIndex = symbolTable.size();
+    int memoryIndex = symTab.size();
 
     SymTabNode node(numberString);
 
     node.mNodeIndex = memoryIndex;
-    symbolTable.push_back(node);
+    symTab.push_back(node);
 
     return memoryIndex;
 }
 
 
-int seekNodeInSymTab(string identifier)
+int seekNodeInSymTab(vector<SymTabNode> &symTab, string identifier)
 {
-    vector<SymTabNode>::iterator it = std::find_if(symbolTable.begin(), 
-                                                   symbolTable.end(), 
+    vector<SymTabNode>::iterator it = std::find_if(symTab.begin(), 
+                                                   symTab.end(), 
                                                    [&](const SymTabNode &node) { 
                                                         return node.mNodeIdentifier == identifier; 
                                                    });
                                
-    if (it != symbolTable.end())
+    if (it != symTab.end())
     {
         return it->mNodeIndex;
     }
@@ -66,14 +66,14 @@ int seekNodeInSymTab(string identifier)
     return -1;
 }
 
-int seekNodeInSymTab(string identifier, int scope)
+int seekNodeInSymTab(vector<SymTabNode> &symTab, string identifier, int scope)
 {
-    vector<SymTabNode>::iterator it = std::find_if(symbolTable.begin() + scope, 
-                                                   symbolTable.end(), 
+    vector<SymTabNode>::iterator it = std::find_if(symTab.begin() + scope, 
+                                                   symTab.end(), 
                                                    [&](const SymTabNode &node) { 
                                                         return node.mNodeIdentifier == identifier; 
                                                    });
-    if (it != symbolTable.end())
+    if (it != symTab.end())
     {
         return it->mNodeIndex;
     }
