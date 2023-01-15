@@ -36,10 +36,8 @@
     const string kColorRed   = "\033[31m";
     const string kColorGreen = "\033[32m";
 
-    extern vector<SymTabNode> symbolTable;
-    extern vector<ASTree *> ASTreeTable;
-
-    ASTree *globalTree;
+    extern vector<ASTree> ASTreeTable;
+    extern ASTree *programASTree;
 
     int argCount = 0;
 %}
@@ -78,7 +76,9 @@
 %token <token> T_ERROR
 
 
-%type <astree> proc_call proc_head command declarations
+%type <astree> procedures main
+%type <astree> proc_call proc_head declarations head_declarations
+%type <astree> commands command 
 %type <astree> condition expression value 
 
 
@@ -86,6 +86,8 @@
 
 program_all:
     procedures main     {
+                            startProgram($1, $2);
+                            
                             cout << "\n\nSymbol Table: ";
                             for (SymTabNode node : symbolTable)
                             {
@@ -97,35 +99,26 @@ program_all:
                             }
 
 
-                            cout << "\n\nASTree Vector:\n";
-                            for (ASTree *tree : ASTreeTable)
-                            {
-                                printPreorder(tree, 0);
-                            }
+                            cout << "\n\nFinal program ASTree:\n";
+                            printPreorder(programASTree, 0);
 
                         }
     ;
 
 procedures:
-    procedures T_PROCEDURE proc_head T_IS T_VAR declarations T_BEGIN commands T_END     
-    | procedures T_PROCEDURE proc_head T_IS T_BEGIN commands T_END                      { 
-                                                                                            // cout << "GLOBAL CURRENTPROC: " << currentProc; 
-                                                                                            // currentProc.clear(); 
-                                                                                        }
-    |
+    procedures T_PROCEDURE proc_head T_IS T_VAR declarations T_BEGIN commands T_END     { $$ = addProcedure($1, $3, $6, $8); }
+    | procedures T_PROCEDURE proc_head T_IS T_BEGIN commands T_END                      { $$ = addProcedure($1, $3, $6); }
+    |                                                                                   { $$ = newTreeBranch(ASTree::kProcedures); }
     ;
 
 main:
-    T_PROGRAM T_IS T_VAR declarations T_BEGIN commands T_END
-    | T_PROGRAM T_IS T_BEGIN commands T_END                     { 
-                                                                    // cout << "GLOBAL CURRENTPROC: " << currentProc; 
-                                                                    // currentProc.clear(); 
-                                                                }
+    T_PROGRAM T_IS T_VAR declarations T_BEGIN commands T_END    { $$ = newTreeBranch(ASTree::kMain, $4, $6); }
+    | T_PROGRAM T_IS T_BEGIN commands T_END                     { $$ = newTreeBranch(ASTree::kMain, $4); }
     ;
 
 commands:
-    commands command                                            {  ASTreeTable.push_back($2); }
-    | command                                                   {  ASTreeTable.push_back($1); }
+    commands command                                            { $$ = addCommand($1, $2); }
+    | command                                                   { $$ = newTreeBranch(ASTree::kCommands, $1); }
     ;
 
 command:
@@ -160,18 +153,18 @@ command:
                                                                         }
                                                                         
                                                                         ASTree *variable = newTreeValue(ASTree::kIdentifier, $1); 
-                                                                        $$ = newTreeStatement(ASTree::kAssign, variable, $3);
+                                                                        $$ = newTreeBranch(ASTree::kAssign, variable, $3);
                                                                     }
     | T_IF condition T_THEN commands T_ELSE commands T_ENDIF
     | T_IF condition T_THEN commands T_ENDIF
     | T_WHILE condition T_DO commands T_ENDWHILE
     | T_REPEAT commands T_UNTIL condition T_SEMICOLON
-    | proc_call T_SEMICOLON                                         { $$ = newTreeStatement(ASTree::kCallProcedure, $1); ASTreeTable.push_back($1); }
+    | proc_call T_SEMICOLON                                         { $$ = newTreeBranch(ASTree::kCall, $1); }
     | T_READ T_IDENTIFIER T_SEMICOLON                               { 
                                                                         ASTree *variable = newTreeValue(ASTree::kIdentifier, $2); 
-                                                                        $$ = newTreeStatement(ASTree::kRead, variable);
+                                                                        $$ = newTreeBranch(ASTree::kRead, variable);
                                                                     }
-    | T_WRITE value T_SEMICOLON                                     { $$ = newTreeStatement(ASTree::kWrite, $2); }
+    | T_WRITE value T_SEMICOLON                                     { $$ = newTreeBranch(ASTree::kWrite, $2); }
     ;
 
 proc_call:
@@ -182,13 +175,15 @@ proc_call:
                                                         yyerror(errorMsg);
                                                     }
 
-                                                    $$ = $2;
+                                                    ASTree *procId = newTreeValue(ASTree::kIdentifier, $1); 
+                                                    $$ = newTreeBranch(ASTree::kCallProcedure, procId, $2);
                                                 }
     ;
 
 proc_head:
     T_IDENTIFIER T_LPAR head_declarations T_RPAR    { 
-                                                        // declareProc(*($1));
+                                                        ASTree *procId = newTreeValue(ASTree::kIdentifier, $1); 
+                                                        $$ = newTreeBranch(ASTree::kNewProcedure, procId, $3);
                                                     }
     ;
 
@@ -197,41 +192,43 @@ declarations:
                                                     argCount++; 
 
                                                     ASTree *variable = newTreeValue(ASTree::kIdentifier, $3); 
-                                                    $$ = addDeclarations($1, variable);
+                                                    $$ = addDeclaration($1, variable);
                                                 }
     | T_IDENTIFIER                              { 
                                                     argCount++; 
 
                                                     ASTree *variable = newTreeValue(ASTree::kIdentifier, $1); 
-                                                    $$ = newTreeStatement(ASTree::kDeclarations, variable);
+                                                    $$ = newTreeBranch(ASTree::kDeclarations, variable);
                                                 }
     ;
 
 head_declarations:
     head_declarations T_COMMA T_IDENTIFIER          { 
-                                                        // addParam(*($3));
+                                                        ASTree *variable = newTreeValue(ASTree::kIdentifier, $3); 
+                                                        $$ = addDeclaration($1, variable);
                                                     }
     | T_IDENTIFIER                                  { 
-                                                        // addParam(*($1));
+                                                        ASTree *variable = newTreeValue(ASTree::kIdentifier, $1); 
+                                                        $$ = newTreeBranch(ASTree::kParameters, variable);
                                                     }
     ;
 
 expression:
     value                           { $$ = $1; }
-    | value T_ADD value             { $$ = newTreeStatement(ASTree::kAddition, $1, $3); }
-    | value T_SUB value             { $$ = newTreeStatement(ASTree::kSubtraction, $1, $3);  }
-    | value T_MUL value             { $$ = newTreeStatement(ASTree::kMultiplication, $1, $3);  }
-    | value T_DIV value             { $$ = newTreeStatement(ASTree::kDivision, $1, $3);  }
-    | value T_MOD value             { $$ = newTreeStatement(ASTree::kModulo, $1, $3);  }
+    | value T_ADD value             { $$ = newTreeBranch(ASTree::kAddition, $1, $3); }
+    | value T_SUB value             { $$ = newTreeBranch(ASTree::kSubtraction, $1, $3);  }
+    | value T_MUL value             { $$ = newTreeBranch(ASTree::kMultiplication, $1, $3);  }
+    | value T_DIV value             { $$ = newTreeBranch(ASTree::kDivision, $1, $3);  }
+    | value T_MOD value             { $$ = newTreeBranch(ASTree::kModulo, $1, $3);  }
     ;
 
 condition:
-    value T_EQ value                { $$ = newTreeStatement(ASTree::kEqual, $1, $3); }
-    | value T_NE value              { $$ = newTreeStatement(ASTree::kNotEqual, $1, $3); }
-    | value T_GT value              { $$ = newTreeStatement(ASTree::kGreater, $1, $3); }
-    | value T_LT value              { $$ = newTreeStatement(ASTree::kLess, $1, $3); }
-    | value T_GE value              { $$ = newTreeStatement(ASTree::kGreaterEqual, $1, $3); }
-    | value T_LE value              { $$ = newTreeStatement(ASTree::kLessEqual, $1, $3); }
+    value T_EQ value                { $$ = newTreeBranch(ASTree::kEqual, $1, $3); }
+    | value T_NE value              { $$ = newTreeBranch(ASTree::kNotEqual, $1, $3); }
+    | value T_GT value              { $$ = newTreeBranch(ASTree::kGreater, $1, $3); }
+    | value T_LT value              { $$ = newTreeBranch(ASTree::kLess, $1, $3); }
+    | value T_GE value              { $$ = newTreeBranch(ASTree::kGreaterEqual, $1, $3); }
+    | value T_LE value              { $$ = newTreeBranch(ASTree::kLessEqual, $1, $3); }
     ;
 
 value:

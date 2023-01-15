@@ -40,25 +40,25 @@ public:
         kModulo = 13,
 
         kDeclarations = 14, 
-        kNewProcedure = 15, 
-        kCallProcedure = 16,
+        kParameters = 15, 
+        kNewProcedure = 16, 
+        kCallProcedure = 17,
 
-        kWrite = 17, 
-        kRead = 18, 
-        kCall = 19, 
-        kAssign = 20,
+        kWrite = 18, 
+        kRead = 19, 
+        kCall = 20, 
+        kAssign = 21,
+        kRepeatLoop = 22, 
+        kWhileLoop = 23,
+        kIfCond = 24, 
+        kIfElseCond = 25,
 
-        kRepeatLoop = 21, 
-        kWhileLoop = 22,
+        kCommand = 26,
+        kCommands = 27,
         
-        kIfCond = 23, 
-        kIfElseCond = 24,
-
-        kCommand = 25,
-        
-        kMain = 26, 
-        kProcedures = 27, 
-        kProgram = 28  
+        kMain = 28, 
+        kProcedures = 29, 
+        kProgram = 30  
     };
 
     TreeType        mTreeType;
@@ -71,10 +71,16 @@ public:
 
 
 
+void startProgram(ASTree *procs, ASTree *main);
+
 ASTree *newTreeValue(ASTree::TreeType type, int index);
+ASTree *newTreeStatement(ASTree::TreeType type);
+ASTree *newTreeStatement(ASTree::TreeType type, ASTree *arg);
 ASTree *newTreeStatement(ASTree::TreeType type, ASTree *firstArg, ASTree *secondArg);
-ASTree *newTreeAssign(ASTree::TreeType type, ASTree *leftSide, ASTree *rightSide);
 
-
+ASTree *addProcedure(ASTree *procs, ASTree *head, ASTree *comms);
+ASTree *addProcedure(ASTree *procs, ASTree *head, ASTree *vars, ASTree *comms);
+ASTree *addDeclaration(ASTree *head, ASTree *var);
+ASTree *addCommand(ASTree *commands, ASTree *command);
 
 #endif
