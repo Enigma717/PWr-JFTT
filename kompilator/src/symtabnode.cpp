@@ -25,6 +25,7 @@ SymTabNode::SymTabNode(Procedure proc) :
     mNodeType = SymTabNode::kProcedure;
     mNodeValue = -1;
     mNodeParamCount = 0;
+    mNodeIsInitialized = false;
 }
 
 SymTabNode::SymTabNode(Variable var) : 
@@ -32,6 +33,7 @@ SymTabNode::SymTabNode(Variable var) :
 {
     mNodeType = SymTabNode::kVariable;
     mNodeParamCount = 0;
+    mNodeIsInitialized = false;
 }
 
 SymTabNode::SymTabNode(string numberString) :
@@ -40,4 +42,5 @@ SymTabNode::SymTabNode(string numberString) :
     mNodeType = SymTabNode::kNumber;
     mNodeValue = stoll(numberString, nullptr, 10);
     mNodeParamCount = 0;
+    mNodeIsInitialized = false;
 }

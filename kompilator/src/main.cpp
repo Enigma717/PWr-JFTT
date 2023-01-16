@@ -7,9 +7,11 @@
 
 
 #include <iostream>
+#include <fstream>
 
-#include "./astree.h"
 #include "./symtab.h"
+#include "./astree.h"
+#include "./asm.cpp"
 
 
 using std::cout;
@@ -46,7 +48,6 @@ map<ASTree::TreeType, std::string> ASTreeTypesStrings = {
     {ASTree::kWhileLoop,        "While"},
     {ASTree::kIfCond,           "If"},
     {ASTree::kIfElseCond,       "IfElse"},
-    {ASTree::kCommand,          "Command"},
     {ASTree::kCommands,         "Commands"},
     {ASTree::kMain,             "Main"},
     {ASTree::kProcedures,       "Procedures"},
@@ -93,19 +94,18 @@ int main(int argc, char** argv)
     if (argc < 2)
     {
         std::cerr << "\n\t\033[31m[ERROR] Nie podano pliku źródłowego\033[0m\n";
-
         return 1;
     }
 
     vector<SymTabNode> symbolTable;
     ASTree programSyntax(ASTree::kProgram, -1, 0, {});
+    vector<ASM> programCode;
 
     FILE *io = fopen(argv[1], "r");
 
     if (io)
     {
         run_parser(io, symbolTable, programSyntax);
-
         fclose(io);
     }
     else
@@ -130,6 +130,50 @@ int main(int argc, char** argv)
 
     cout << "\n\nASTREE:\n";
     printPreorder(symbolTable, &programSyntax, 0);
+
+    
+    std::string oFileName;
+    std::ofstream outputFile;
+
+    if (argv[2])
+    {
+        oFileName = argv[2];
+    }
+    else
+    {
+        oFileName = "./output.mr";
+    }
+
+    outputFile.open(oFileName);
+
+ 
+
+    addConstants(programCode, symbolTable);
+    generateCode(programCode, symbolTable, &programSyntax);
+
+    pushInstruction(programCode, ASM::kHalt);
+
+
+    cout << "\n\nAFTER CODEGEN:\n";
+
+
+    saveCodeToFile(outputFile, programCode);
+
+
+    for (SymTabNode node : symbolTable)
+    {
+        cout << "\n>> Variable -> type: " << node.mNodeType 
+             << "\tID: " << node.mNodeIdentifier 
+             << "\t\tValue: " << node.mNodeValue 
+             << "\tIndex: " << node.mNodeIndex
+             << "\tParamCount: " << node.mNodeParamCount; 
+    }
+
+    cout << "\n\n";
+
+
+    outputFile.close();
+
 
     return 0;
 }

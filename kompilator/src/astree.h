@@ -22,42 +22,41 @@ using std::vector, std::initializer_list;
 class ASTree {
 public:
     enum TreeType {
-        kIdentifier = 1, 
-        kNumber = 2, 
+        kIdentifier      = 1, 
+        kNumber          = 2, 
         
-        kEqual = 3, 
-        kNotEqual = 4, 
-        kGreater = 5, 
-        kLess = 6, 
-        kGreaterEqual = 7, 
-        kLessEqual = 8,
+        kEqual           = 3, 
+        kNotEqual        = 4, 
+        kGreater         = 5, 
+        kLess            = 6, 
+        kGreaterEqual    = 7, 
+        kLessEqual       = 8,
 
-        kAddition = 9,
-        kSubtraction = 10, 
-        kMultiplication = 11, 
-        kDivision = 12, 
-        kModulo = 13,
+        kAddition        = 9,
+        kSubtraction     = 10, 
+        kMultiplication  = 11, 
+        kDivision        = 12, 
+        kModulo          = 13,
 
-        kDeclarations = 14, 
-        kParameters = 15, 
-        kNewProcedure = 16, 
-        kCallProcedure = 17,
+        kDeclarations    = 14, 
+        kParameters      = 15, 
+        kNewProcedure    = 16, 
+        kCallProcedure   = 17,
 
-        kWrite = 18, 
-        kRead = 19, 
-        kCall = 20, 
-        kAssign = 21,
-        kRepeatLoop = 22, 
-        kWhileLoop = 23,
-        kIfCond = 24, 
-        kIfElseCond = 25,
+        kWrite           = 18, 
+        kRead            = 19, 
+        kCall            = 20, 
+        kAssign          = 21,
+        kRepeatLoop      = 22, 
+        kWhileLoop       = 23,
+        kIfCond          = 24, 
+        kIfElseCond      = 25,
 
-        kCommand = 26,
-        kCommands = 27,
+        kCommands        = 26,
         
-        kMain = 28, 
-        kProcedures = 29, 
-        kProgram = 30  
+        kMain            = 27, 
+        kProcedures      = 28, 
+        kProgram         = 29  
     };
 
     TreeType        mTreeType;

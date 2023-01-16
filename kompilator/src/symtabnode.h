@@ -37,9 +37,9 @@ public:
 class SymTabNode {
 public:
     enum NodeType {
-        kProcedure = 1, 
-        kVariable = 2, 
-        kNumber = 3
+        kProcedure  = 1, 
+        kVariable   = 2, 
+        kNumber     = 3
     };
 
     NodeType        mNodeType;
@@ -47,6 +47,7 @@ public:
     long long int   mNodeValue;
     int             mNodeIndex;
     int             mNodeParamCount;
+    bool            mNodeIsInitialized;
 
     SymTabNode(Variable var);
     SymTabNode(Procedure proc);

@@ -45,7 +45,6 @@
     int                     token;
     int                     tab_index;
     ASTree                  *astree;
-    long long int           lli;
 }
 
 
@@ -72,7 +71,7 @@
 // Token błędu
 %token <token> T_ERROR
 
-
+// Typy rozgałęzienia drzewa składniowego
 %type <astree> procedures main
 %type <astree> proc_call proc_head declarations head_declarations
 %type <astree> commands command 
@@ -104,36 +103,37 @@ commands:
 command:
     T_IDENTIFIER T_ASSIGN expression T_SEMICOLON                    { 
                                                                         /* do usunięcia */
-                                                                        if (!(($3->mTreeBranches).empty()))
-                                                                        {
-                                                                            ASTree *treeBranch1 = $3->mTreeBranches[0];
-                                                                            ASTree *treeBranch2 = $3->mTreeBranches[1];
+                                                                        // if (!(($3->mTreeBranches).empty()))
+                                                                        // {
+                                                                        //     ASTree *treeBranch1 = $3->mTreeBranches[0];
+                                                                        //     ASTree *treeBranch2 = $3->mTreeBranches[1];
 
-                                                                            switch($3->mTreeType) {
-                                                                                case ASTree::kAddition:
-                                                                                    symbolTable[$1].mNodeValue = symbolTable[treeBranch1->mTreeMemoryIndex].mNodeValue + 
-                                                                                                                symbolTable[treeBranch2->mTreeMemoryIndex].mNodeValue;
-                                                                                    break;
-                                                                                case ASTree::kSubtraction:
-                                                                                    symbolTable[$1].mNodeValue = symbolTable[treeBranch1->mTreeMemoryIndex].mNodeValue - 
-                                                                                                                symbolTable[treeBranch2->mTreeMemoryIndex].mNodeValue;
-                                                                                    break;
-                                                                                case ASTree::kMultiplication:
-                                                                                    symbolTable[$1].mNodeValue = symbolTable[treeBranch1->mTreeMemoryIndex].mNodeValue * 
-                                                                                                                symbolTable[treeBranch2->mTreeMemoryIndex].mNodeValue;
-                                                                                    break;
-                                                                                case ASTree::kDivision:
-                                                                                    symbolTable[$1].mNodeValue = symbolTable[treeBranch1->mTreeMemoryIndex].mNodeValue / 
-                                                                                                                symbolTable[treeBranch2->mTreeMemoryIndex].mNodeValue;
-                                                                                    break;
-                                                                            }
-                                                                        }
-                                                                        else
-                                                                        {
-                                                                            symbolTable[$1].mNodeValue = symbolTable[$3->mTreeMemoryIndex].mNodeValue;
-                                                                        }
+                                                                        //     switch($3->mTreeType) {
+                                                                        //         case ASTree::kAddition:
+                                                                        //             symbolTable[$1].mNodeValue = symbolTable[treeBranch1->mTreeMemoryIndex].mNodeValue + 
+                                                                        //                                         symbolTable[treeBranch2->mTreeMemoryIndex].mNodeValue;
+                                                                        //             break;
+                                                                        //         case ASTree::kSubtraction:
+                                                                        //             symbolTable[$1].mNodeValue = symbolTable[treeBranch1->mTreeMemoryIndex].mNodeValue - 
+                                                                        //                                         symbolTable[treeBranch2->mTreeMemoryIndex].mNodeValue;
+                                                                        //             break;
+                                                                        //         case ASTree::kMultiplication:
+                                                                        //             symbolTable[$1].mNodeValue = symbolTable[treeBranch1->mTreeMemoryIndex].mNodeValue * 
+                                                                        //                                         symbolTable[treeBranch2->mTreeMemoryIndex].mNodeValue;
+                                                                        //             break;
+                                                                        //         case ASTree::kDivision:
+                                                                        //             symbolTable[$1].mNodeValue = symbolTable[treeBranch1->mTreeMemoryIndex].mNodeValue / 
+                                                                        //                                         symbolTable[treeBranch2->mTreeMemoryIndex].mNodeValue;
+                                                                        //             break;
+                                                                        //     }
+                                                                        // }
+                                                                        // else
+                                                                        // {
+                                                                        //     symbolTable[$1].mNodeValue = symbolTable[$3->mTreeMemoryIndex].mNodeValue;
+                                                                        // }
                                                                         /* do usunięcia */
 
+                                                                        symbolTable[$1].mNodeIsInitialized = true;
                                                                         ASTree *variable = newTreeValue(ASTree::kIdentifier, $1); 
                                                                         $$ = newTreeBranch(ASTree::kAssign, variable, $3);
                                                                     }
@@ -143,6 +143,7 @@ command:
     | T_REPEAT commands T_UNTIL condition T_SEMICOLON
     | proc_call T_SEMICOLON                                         { $$ = newTreeBranch(ASTree::kCall, $1); }
     | T_READ T_IDENTIFIER T_SEMICOLON                               { 
+                                                                        symbolTable[$2].mNodeIsInitialized = true;
                                                                         ASTree *variable = newTreeValue(ASTree::kIdentifier, $2); 
                                                                         $$ = newTreeBranch(ASTree::kRead, variable);
                                                                     }
@@ -186,10 +187,12 @@ declarations:
 
 head_declarations:
     head_declarations T_COMMA T_IDENTIFIER          { 
+                                                        symbolTable[$3].mNodeIsInitialized = true;
                                                         ASTree *variable = newTreeValue(ASTree::kIdentifier, $3); 
                                                         $$ = addDeclaration($1, variable);
                                                     }
     | T_IDENTIFIER                                  { 
+                                                        symbolTable[$1].mNodeIsInitialized = true;
                                                         ASTree *variable = newTreeValue(ASTree::kIdentifier, $1); 
                                                         $$ = newTreeBranch(ASTree::kParameters, variable);
                                                     }
@@ -216,7 +219,7 @@ condition:
 value:
     T_NUM                           { $$ = newTreeValue(ASTree::kNumber, $1); }
     | T_IDENTIFIER                  {
-                                        if (symbolTable[$1].mNodeValue < 0) 
+                                        if (symbolTable[$1].mNodeIsInitialized == false) 
                                         { 
                                             string errorMsg = "Użycie niezadeklarowanej/niezainicjalizowanej zmiennej \'" + symbolTable[$1].mNodeIdentifier + "\'";
                                             yyerror(symbolTable, programTree, errorMsg);
@@ -227,7 +230,6 @@ value:
 
 
 %%
-
 
 
 void yyerror(vector<SymTabNode> &symbolTable, ASTree &programTree, string s)

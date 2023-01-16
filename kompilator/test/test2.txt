@@ -1,7 +1,10 @@
 PROGRAM IS
 VAR x, y, z
 BEGIN
-    x := 1 + 2;
+    READ x;
     y := 3 + 4;
     z := 5 + 6;
+    WRITE x;
+    WRITE y;
+    WRITE z;
 END

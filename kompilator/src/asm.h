@@ -16,27 +16,27 @@
 class ASM {
 public:
     enum InstructionType {
-        kGet = 1,
-        kPut = 2,
+        kGet     = 1,
+        kPut     = 2,
         
-        kLoad = 3, 
-        kStore = 4, 
-        kLoadI = 5, 
-        kStoreI = 6, 
+        kLoad    = 3, 
+        kStore   = 4, 
+        kLoadI   = 5, 
+        kStoreI  = 6, 
         
-        kAdd = 7, 
-        kSub = 8, 
-        kAddI = 9, 
-        kSubI = 10, 
-        kSet = 11, 
-        kHalf = 12, 
+        kAdd     = 7, 
+        kSub     = 8, 
+        kAddI    = 9, 
+        kSubI    = 10, 
+        kSet     = 11, 
+        kHalf    = 12, 
         
-        kJump = 13, 
-        kJPos = 14, 
-        kJZero = 15, 
-        kJumpI = 16, 
+        kJump    = 13, 
+        kJPos    = 14, 
+        kJZero   = 15, 
+        kJumpI   = 16, 
         
-        kHalt = 17 
+        kHalt    = 17 
     };
 
     string  mASMInstruction;
@@ -45,9 +45,6 @@ public:
     ASM(InstructionType instruction);
     ASM(InstructionType instruction, int argument);
 };
-
-
-vector<ASM> programCode;
 
 
 map<ASM::InstructionType, std::string> ASMInstructionsStrings = {
@@ -71,8 +68,14 @@ map<ASM::InstructionType, std::string> ASMInstructionsStrings = {
 };
 
 
-void addInstruction();
+void generateCode(vector<ASM> &code, vector<SymTabNode> &symTab, ASTree *tree);
+void saveCodeToFile(std::ofstream &file, vector<ASM> &code);
 
+void pushInstruction(vector<ASM> &code, ASM::InstructionType type);
+void pushInstruction(vector<ASM> &code, ASM::InstructionType type, int arg);
+
+void addConstants(vector<ASM> &code, vector<SymTabNode> &symTab);
+void addInstructionAssign(vector<ASM> &code, vector<SymTabNode> &symTab, ASTree *tree);
 
 
 
