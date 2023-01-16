@@ -44,23 +44,30 @@ ASTree *newTreeValue(ASTree::TreeType type, int index)
 
 ASTree *newTreeBranch(ASTree::TreeType type)
 {
-    ASTree *statement = new ASTree(type, -1, 0, {});
+    ASTree *branch = new ASTree(type, -1, 0, {});
 
-    return statement;
+    return branch;
 }
 
 ASTree *newTreeBranch(ASTree::TreeType type, ASTree *arg)
 {
-    ASTree *statement = new ASTree(type, -1, 1, {arg});
+    ASTree *branch = new ASTree(type, -1, 1, {arg});
 
-    return statement;
+    return branch;
 }
 
 ASTree *newTreeBranch(ASTree::TreeType type, ASTree *firstArg, ASTree *secondArg)
 {
-    ASTree *statement = new ASTree(type, -1, 2, {firstArg, secondArg});
+    ASTree *branch = new ASTree(type, -1, 2, {firstArg, secondArg});
     
-    return statement;
+    return branch;
+}
+
+ASTree *newTreeBranch(ASTree::TreeType type, ASTree *firstArg, ASTree *secondArg, ASTree *thirdArg)
+{
+    ASTree *branch = new ASTree(type, -1, 3, {firstArg, secondArg, thirdArg});
+    
+    return branch;
 }
 
 

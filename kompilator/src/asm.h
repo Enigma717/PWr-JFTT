@@ -69,13 +69,22 @@ map<ASM::InstructionType, std::string> ASMInstructionsStrings = {
 
 
 void generateCode(vector<ASM> &code, vector<SymTabNode> &symTab, ASTree *tree);
+
 void saveCodeToFile(std::ofstream &file, vector<ASM> &code);
 
 void pushInstruction(vector<ASM> &code, ASM::InstructionType type);
 void pushInstruction(vector<ASM> &code, ASM::InstructionType type, int arg);
 
+int createCondition(vector<ASM> &code, vector<SymTabNode> &symTab, ASM::InstructionType type);
+int createConditionRepeat(vector<ASM> &code, vector<SymTabNode> &symTab, ASM::InstructionType type);
+
 void addConstants(vector<ASM> &code, vector<SymTabNode> &symTab);
 void addInstructionAssign(vector<ASM> &code, vector<SymTabNode> &symTab, ASTree *tree);
+
+void addInstructionIf(vector<ASM> &code, vector<SymTabNode> &symTab, ASTree *tree);
+void addInstructionIfElse(vector<ASM> &code, vector<SymTabNode> &symTab, ASTree *tree);
+void addInstructionWhile(vector<ASM> &code, vector<SymTabNode> &symTab, ASTree *tree);
+void addInstructionRepeat(vector<ASM> &code, vector<SymTabNode> &symTab, ASTree *tree);
 
 
 

@@ -59,10 +59,10 @@ public:
         kProgram         = 29  
     };
 
-    TreeType        mTreeType;
-    int             mTreeMemoryIndex;
-    int             mTreeBranchesCount;
-    vector<ASTree *>  mTreeBranches;
+    TreeType            mTreeType;
+    int                 mTreeMemoryIndex;
+    int                 mTreeBranchesCount;
+    vector<ASTree *>    mTreeBranches;
 
     ASTree(TreeType type, int index, int branchesCount, initializer_list<ASTree *> subTrees);
 };

@@ -137,10 +137,10 @@ command:
                                                                         ASTree *variable = newTreeValue(ASTree::kIdentifier, $1); 
                                                                         $$ = newTreeBranch(ASTree::kAssign, variable, $3);
                                                                     }
-    | T_IF condition T_THEN commands T_ELSE commands T_ENDIF
-    | T_IF condition T_THEN commands T_ENDIF
-    | T_WHILE condition T_DO commands T_ENDWHILE
-    | T_REPEAT commands T_UNTIL condition T_SEMICOLON
+    | T_IF condition T_THEN commands T_ELSE commands T_ENDIF        { $$ = newTreeBranch(ASTree::kIfElseCond, $2, $4, $6); }
+    | T_IF condition T_THEN commands T_ENDIF                        { $$ = newTreeBranch(ASTree::kIfCond, $2, $4); }
+    | T_WHILE condition T_DO commands T_ENDWHILE                    { $$ = newTreeBranch(ASTree::kWhileLoop, $2, $4); }
+    | T_REPEAT commands T_UNTIL condition T_SEMICOLON               { $$ = newTreeBranch(ASTree::kRepeatLoop, $4, $2); }
     | proc_call T_SEMICOLON                                         { $$ = newTreeBranch(ASTree::kCall, $1); }
     | T_READ T_IDENTIFIER T_SEMICOLON                               { 
                                                                         symbolTable[$2].mNodeIsInitialized = true;

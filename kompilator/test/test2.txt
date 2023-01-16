@@ -3,8 +3,17 @@ VAR x, y, z
 BEGIN
     READ x;
     y := 3 + 4;
-    z := 5 + 6;
-    WRITE x;
+    z := 5 + 7;
+
+    WHILE x > 0 DO
+        IF x > y THEN
+            WRITE 2137;
+        ELSE
+            WRITE 420;
+        ENDIF
+        x := x - 1;
+    ENDWHILE
+    
     WRITE y;
     WRITE z;
 END

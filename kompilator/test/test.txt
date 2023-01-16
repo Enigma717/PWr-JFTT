@@ -1,10 +1,14 @@
 PROCEDURE test(x, y, z) IS
 VAR a, b, c
 BEGIN
-    x := 1;
-    y := 2;
-    z := x + y;
-    z := z * 10;
+    x := 3;
+    a := 10;
+
+    IF x > a THEN
+        WRITE x;
+        x := 4;
+        b := x + 10;
+    ENDIF
 END
 
 PROCEDURE xd(a, b, c, d, e, f) IS
@@ -14,6 +18,11 @@ BEGIN
     c := 10;
     d := c * 100;
     e := 100 / 5;
+
+    REPEAT
+        WRITE 0;
+        a := a - 1;
+    UNTIL a > 1;
 END
 
 
