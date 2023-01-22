@@ -39,11 +39,11 @@ public:
         kHalt    = 17 
     };
 
-    string  mASMInstruction;
-    int     mASMArgumentIndex;
+    string          mASMInstruction;
+    long long int   mASMArgumentIndex;
 
     ASM(InstructionType instruction);
-    ASM(InstructionType instruction, int argument);
+    ASM(InstructionType instruction, long long int argument);
 };
 
 
@@ -73,19 +73,24 @@ void generateCode(vector<ASM> &code, vector<SymTabNode> &symTab, ASTree *tree);
 void saveCodeToFile(std::ofstream &file, vector<ASM> &code);
 
 void pushInstruction(vector<ASM> &code, ASM::InstructionType type);
-void pushInstruction(vector<ASM> &code, ASM::InstructionType type, int arg);
-
-int createCondition(vector<ASM> &code, vector<SymTabNode> &symTab, ASM::InstructionType type);
-int createConditionRepeat(vector<ASM> &code, vector<SymTabNode> &symTab, ASM::InstructionType type);
+void pushInstruction(vector<ASM> &code, ASM::InstructionType type, long long int arg);
 
 void addConstants(vector<ASM> &code, vector<SymTabNode> &symTab);
-void addInstructionAssign(vector<ASM> &code, vector<SymTabNode> &symTab, ASTree *tree);
 
+
+void createNewProcedure(vector<ASM> &code, vector<SymTabNode> &symTab, ASTree *tree);
+
+
+int createCondition(vector<ASM> &code, vector<SymTabNode> &symTab, ASM::InstructionType type);
+void createRepeatCondition(vector<ASM> &code, vector<SymTabNode> &symTab, ASTree *tree, int startIndex);
+void fixConditionJump(vector<ASM> &code, ASTree::TreeType type, int index1);
 void addInstructionIf(vector<ASM> &code, vector<SymTabNode> &symTab, ASTree *tree);
 void addInstructionIfElse(vector<ASM> &code, vector<SymTabNode> &symTab, ASTree *tree);
 void addInstructionWhile(vector<ASM> &code, vector<SymTabNode> &symTab, ASTree *tree);
 void addInstructionRepeat(vector<ASM> &code, vector<SymTabNode> &symTab, ASTree *tree);
 
+
+void addInstructionAssign(vector<ASM> &code, vector<SymTabNode> &symTab, ASTree *tree);
 
 
 #endif

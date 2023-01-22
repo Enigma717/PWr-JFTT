@@ -1,19 +1,16 @@
 PROGRAM IS
-VAR x, y, z
-BEGIN
-    READ x;
-    y := 3 + 4;
-    z := 5 + 7;
+VAR b, c, d
+BEGIN 
+    b := 2;
+    d := 0;
+    c := 1024;
 
-    WHILE x > 0 DO
-        IF x > y THEN
-            WRITE 2137;
-        ELSE
-            WRITE 420;
-        ENDIF
-        x := x - 1;
+    WHILE d < 1000 DO
+        c := c / b;
+        c := c * b;
+        d := d + 1;
     ENDWHILE
-    
-    WRITE y;
-    WRITE z;
+
+    WRITE c;
+    WRITE d;
 END

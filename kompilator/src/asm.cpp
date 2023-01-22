@@ -8,10 +8,16 @@
 
 #include <iostream>
 #include <algorithm>
+#include <map>
 
 #include "./asm.h"
 
 using std::cout;
+
+
+map<string, long long int> procsOffsets;
+map<string, long long int> procsStarts;
+int offset = 1;
 
 
 //////////////////////
@@ -25,7 +31,7 @@ ASM::ASM(InstructionType instruction) :
 }
 
 
-ASM::ASM(InstructionType instruction, int argument) :
+ASM::ASM(InstructionType instruction, long long int argument) :
     mASMInstruction(ASMInstructionsStrings[instruction]), mASMArgumentIndex(argument) {}
 
 
@@ -33,7 +39,7 @@ ASM::ASM(InstructionType instruction, int argument) :
 // Generowanie kodu za pomocą pre-order walk //
 ///////////////////////////////////////////////
 
-void generateCode(vector<ASM> &code, vector<SymTabNode> &symTab, ASTree *tree)
+void generateCode(vector<ASM> &code, vector<SymTabNode> &symTab, ASTree *tree, const int mainStart)
 {
     if (tree == NULL)
     {
@@ -60,14 +66,48 @@ void generateCode(vector<ASM> &code, vector<SymTabNode> &symTab, ASTree *tree)
             break;
 
         case ASTree::kParameters:
-
+            
             break;
 
         case ASTree::kNewProcedure:
+            cout << "[NOWA PROCEDURA]\n";
+            cout << "NAZWA PROCEDURY: " << symTab[tree->mTreeBranches[0]->mTreeMemoryIndex].mNodeIdentifier << "\n";
+            // cout << "STORE: " << symTab[tree->mTreeBranches[0]->mTreeMemoryIndex + i].mNodeIdentifier << "\n";
+
+            skipComms = true;
+            createNewProcedure(code, symTab, tree);
 
             break;
 
         case ASTree::kCallProcedure:
+            for (int i = 1; i <= symTab[tree->mTreeBranches[0]->mTreeMemoryIndex].mNodeParamCount; i++)
+            {
+                cout << "INITIALIZED: " << symTab[tree->mTreeBranches[0]->mTreeMemoryIndex + i].mNodeIsInitialized << "\n";
+                cout << "LOAD: " << symTab[tree->mTreeBranches[1]->mTreeBranches[i - 1]->mTreeMemoryIndex].mNodeIdentifier << "\n";
+                cout << "STORE: " << symTab[tree->mTreeBranches[0]->mTreeMemoryIndex + i].mNodeIdentifier << "\n";
+
+                pushInstruction(code, ASM::kLoad, symTab[tree->mTreeBranches[1]->mTreeBranches[i - 1]->mTreeMemoryIndex].mNodeIndex);
+                pushInstruction(code, ASM::kStore, symTab[tree->mTreeBranches[0]->mTreeMemoryIndex + i].mNodeIndex);
+            }
+
+
+
+            pushInstruction(code, ASM::kSet, code.size() + 3);
+            pushInstruction(code, ASM::kStore, procsOffsets[symTab[tree->mTreeBranches[0]->mTreeMemoryIndex].mNodeIdentifier]);
+            
+
+            pushInstruction(code, ASM::kJump, procsStarts[symTab[tree->mTreeBranches[0]->mTreeMemoryIndex].mNodeIdentifier]);
+
+
+
+            for (int i = 1; i <= symTab[tree->mTreeBranches[0]->mTreeMemoryIndex].mNodeParamCount; i++)
+            {
+                cout << "LOAD: " << symTab[tree->mTreeBranches[1]->mTreeBranches[i - 1]->mTreeMemoryIndex].mNodeIdentifier << "\n";
+                cout << "STORE: " << symTab[tree->mTreeBranches[0]->mTreeMemoryIndex + i].mNodeIdentifier << "\n";
+
+                pushInstruction(code, ASM::kLoad, symTab[tree->mTreeBranches[0]->mTreeMemoryIndex + i].mNodeIndex);
+                pushInstruction(code, ASM::kStore, symTab[tree->mTreeBranches[1]->mTreeBranches[i - 1]->mTreeMemoryIndex].mNodeIndex);
+            }
 
             break;
 
@@ -96,32 +136,32 @@ void generateCode(vector<ASM> &code, vector<SymTabNode> &symTab, ASTree *tree)
         case ASTree::kRepeatLoop:
             cout << "[REPEAT]\n";
 
-            addInstructionRepeat(code, symTab, tree);
             skipComms = true;
+            addInstructionRepeat(code, symTab, tree);
 
             break;
 
         case ASTree::kWhileLoop:
             cout << "[WHILE]\n";
 
-            addInstructionWhile(code, symTab, tree);
             skipComms = true;
+            addInstructionWhile(code, symTab, tree);
 
             break;
 
         case ASTree::kIfCond:
             cout << "[IF]\n";
 
-            addInstructionIf(code, symTab, tree);
             skipComms = true;
+            addInstructionIf(code, symTab, tree);
 
             break;
 
         case ASTree::kIfElseCond:
             cout << "[IFELSE]\n";
 
-            addInstructionIfElse(code, symTab, tree);
             skipComms = true;
+            addInstructionIfElse(code, symTab, tree);
 
             break;
 
@@ -132,6 +172,16 @@ void generateCode(vector<ASM> &code, vector<SymTabNode> &symTab, ASTree *tree)
 
         case ASTree::kMain:
             cout << "[BLOK MAIN]\n";
+
+            // cout << "ADRES MAINA: " << symTab[tree->mTreeBranches[0]->mTreeMemoryIndex].mNodeIndex << "\n";
+            // cout << "NAZWA MAINA: " << symTab[tree->mTreeBranches[0]->mTreeMemoryIndex].mNodeIdentifier << "\n";
+
+            // for (auto itr = procsOffsets.begin(); itr != procsOffsets.end(); itr++)
+            // {
+            //     cout << "\nPROCEDURA: " << itr->first << "\t OFFSET: " << itr->second;
+            // } 
+
+            code[mainStart].mASMArgumentIndex = code.size();
             
             break;
 
@@ -143,6 +193,8 @@ void generateCode(vector<ASM> &code, vector<SymTabNode> &symTab, ASTree *tree)
         case ASTree::kProgram:
             cout << "\n\n[START PROGRAMU]\n"; 
 
+            pushInstruction(code, ASM::kJump);
+
             break;
     }
     
@@ -151,7 +203,7 @@ void generateCode(vector<ASM> &code, vector<SymTabNode> &symTab, ASTree *tree)
     {
         for (ASTree *subTree : tree->mTreeBranches)
         {
-            generateCode(code, symTab, subTree);
+            generateCode(code, symTab, subTree, mainStart);
         }
     }
 }
@@ -186,78 +238,15 @@ void pushInstruction(vector<ASM> &code, ASM::InstructionType type)
     code.push_back(ASM(type));
 }
 
-void pushInstruction(vector<ASM> &code, ASM::InstructionType type, int arg)
+void pushInstruction(vector<ASM> &code, ASM::InstructionType type, long long int arg)
 {
     code.push_back(ASM(type, arg));
 }
 
 
-////////////////////////////////////////
-// Tworzenie warunków do ifów i pętli //
-////////////////////////////////////////
-
-int createCondition(vector<ASM> &code, vector<SymTabNode> &symTab, ASTree *tree)
-{
-    ASTree *cond = tree->mTreeBranches[0];
-
-    int condFirstArgIndex = cond->mTreeBranches[0]->mTreeMemoryIndex;
-    int condSecondArgIndex = cond->mTreeBranches[1]->mTreeMemoryIndex;
-
-    int jumpIndex;
-
-
-    switch (cond->mTreeType) {
-        case ASTree::kEqual:
-
-            break;
-
-        case ASTree::kNotEqual:
-
-            break;
-
-        case ASTree::kGreater:
-            // do usunięcia
-            cout << "\tLOAD " << symTab[condFirstArgIndex].mNodeIndex << "\n";
-            cout << "\tSUB " << symTab[condSecondArgIndex].mNodeIndex;
-
-            cout << "\t[ " 
-                 << symTab[condFirstArgIndex].mNodeIdentifier << " > " << symTab[condSecondArgIndex].mNodeIdentifier
-                 << " ]\n";
-            // do usunięcia
-
-            pushInstruction(code, ASM::kLoad, symTab[condFirstArgIndex].mNodeIndex);
-            pushInstruction(code, ASM::kSub, symTab[condSecondArgIndex].mNodeIndex);
-
-            jumpIndex = code.size();
-
-            pushInstruction(code, ASM::kJZero);
-
-            cout << "\tJZERO " << jumpIndex << "\n";
-
-            break;
-
-        case ASTree::kLess:
-
-            break;
-
-        case ASTree::kGreaterEqual:
-
-            break;
-
-        case ASTree::kLessEqual:
-
-            break;
-    }
-
-    return jumpIndex;
-}
-
-
-////////////////////////////////////////////////////
-// Tworzenie bloków instrukcji ze słów kluczowych //
-////////////////////////////////////////////////////
-
-        /*    Zapisanie stałych w pamięci    */ 
+/////////////////////////////////
+// Wpisanie stałych do pamięci //
+///////////////////////////////// 
 
 void addConstants(vector<ASM> &code, vector<SymTabNode> &symTab)
 {
@@ -274,112 +263,386 @@ void addConstants(vector<ASM> &code, vector<SymTabNode> &symTab)
 }
 
 
-        /*    Assign z wewnętrznym poddrzewem expression    */  
-        
-void addInstructionAssign(vector<ASM> &code, vector<SymTabNode> &symTab, ASTree *tree)
+///////////////////////////////
+// Tworzenie nowej procedury //
+///////////////////////////////
+
+void createNewProcedure(vector<ASM> &code, vector<SymTabNode> &symTab, ASTree *tree)
 {
-    ASTree *var = tree->mTreeBranches[0];
-    ASTree *exp = tree->mTreeBranches[1];
+    long long int procOutIndex = symTab.size() + 3;
+    long long int procStart = code.size();
+    string procId = symTab[tree->mTreeBranches[0]->mTreeMemoryIndex].mNodeIdentifier;
 
-    switch (exp->mTreeType) {
-        case ASTree::kIdentifier:
+    if (tree->mTreeBranches.size() == 4)
+    {
+        generateCode(code, symTab, tree->mTreeBranches[3], 0);
+    }
+    else
+    {
+        generateCode(code, symTab, tree->mTreeBranches[2], 0);
+    }
+
+    procsOffsets.insert({procId, procOutIndex + offset});
+    procsStarts.insert({procId, procStart});
+    
+    pushInstruction(code, ASM::kJumpI, procOutIndex + offset);
+    offset++;
+}
+
+//////////////////////////////////
+// Instrukcje warunkowe i pętle //
+//////////////////////////////////
+
+// Tworzenie warnuków
+
+int createCondition(vector<ASM> &code, vector<SymTabNode> &symTab, ASTree *tree)
+{
+    ASTree *cond = tree->mTreeBranches[0];
+    int condFirstArgIndex = cond->mTreeBranches[0]->mTreeMemoryIndex;
+    int condSecondArgIndex = cond->mTreeBranches[1]->mTreeMemoryIndex;
+
+    int jumpIndex;
+
+
+    switch (cond->mTreeType) {
+        case ASTree::kEqual:
             // do usunięcia
-            cout << "\tLOAD " << symTab[exp->mTreeMemoryIndex].mNodeIndex << "\n";
+            cout << "\tLOAD " << symTab[condFirstArgIndex].mNodeIndex << "\n";
+            cout << "\tSUB " << symTab[condSecondArgIndex].mNodeIndex;
+            cout << "\n\tJPOS ";
+            cout << "\n\tLOAD " << symTab[condSecondArgIndex].mNodeIndex;
+            cout << "\n\tSUB " << symTab[condFirstArgIndex].mNodeIndex;
+            cout << "\n\tJPOS ";
 
-            symTab[var->mTreeMemoryIndex].mNodeValue = symTab[exp->mTreeMemoryIndex].mNodeValue;
-            // do usunięcia
-                 
-            pushInstruction(code, ASM::kLoad, symTab[exp->mTreeMemoryIndex].mNodeIndex);
-
-            break;
-
-        case ASTree::kNumber:
-            // do usunięcia
-            cout << "\tLOAD " << symTab[exp->mTreeMemoryIndex].mNodeIndex << "\n";
-
-            symTab[var->mTreeMemoryIndex].mNodeValue = symTab[exp->mTreeMemoryIndex].mNodeValue;
-            // do usunięcia
-                 
-            pushInstruction(code, ASM::kLoad, symTab[exp->mTreeMemoryIndex].mNodeIndex);
-
-            break;
-
-        case ASTree::kAddition:
-            // do usunięcia
-            cout << "\tLOAD " << symTab[exp->mTreeBranches[0]->mTreeMemoryIndex].mNodeIndex << "\n";
-            cout << "\tADD " << symTab[exp->mTreeBranches[1]->mTreeMemoryIndex].mNodeIndex;
-
-            cout << "\t[ " << symTab[var->mTreeMemoryIndex].mNodeIdentifier << " := " 
-                 << symTab[exp->mTreeBranches[0]->mTreeMemoryIndex].mNodeIdentifier << " + " 
-                 << symTab[exp->mTreeBranches[1]->mTreeMemoryIndex].mNodeIdentifier
+            cout << "\t[ " 
+                 << symTab[condFirstArgIndex].mNodeIdentifier << " = " << symTab[condSecondArgIndex].mNodeIdentifier
                  << " ]\n";
-
-            symTab[var->mTreeMemoryIndex].mNodeValue = symTab[exp->mTreeBranches[0]->mTreeMemoryIndex].mNodeValue + 
-            symTab[exp->mTreeBranches[1]->mTreeMemoryIndex].mNodeValue;
             // do usunięcia
 
-            pushInstruction(code, ASM::kLoad, symTab[exp->mTreeBranches[0]->mTreeMemoryIndex].mNodeIndex);
-            pushInstruction(code, ASM::kAdd, symTab[exp->mTreeBranches[1]->mTreeMemoryIndex].mNodeIndex);
+            pushInstruction(code, ASM::kLoad, symTab[condFirstArgIndex].mNodeIndex);
+            pushInstruction(code, ASM::kSub, symTab[condSecondArgIndex].mNodeIndex);
+            pushInstruction(code, ASM::kJPos);
+            pushInstruction(code, ASM::kLoad, symTab[condSecondArgIndex].mNodeIndex);
+            pushInstruction(code, ASM::kSub, symTab[condFirstArgIndex].mNodeIndex);
 
+            jumpIndex = code.size();
+            pushInstruction(code, ASM::kJPos);
+            
             break;
 
-        case ASTree::kSubtraction:
+        case ASTree::kNotEqual:
             // do usunięcia
-            cout << "\tLOAD " << symTab[exp->mTreeBranches[0]->mTreeMemoryIndex].mNodeIndex << "\n";
-            cout << "\tSUB " << symTab[exp->mTreeBranches[1]->mTreeMemoryIndex].mNodeIndex;
+            cout << "\tLOAD " << symTab[condFirstArgIndex].mNodeIndex << "\n";
+            cout << "\tSUB " << symTab[condSecondArgIndex].mNodeIndex;
+            cout << "\n\tJPOS ";
+            cout << "\n\tLOAD " << symTab[condSecondArgIndex].mNodeIndex;
+            cout << "\n\tSUB " << symTab[condFirstArgIndex].mNodeIndex;
+            cout << "\n\tJPOS ";
+            cout << "\n\tJUMP ";
 
-            cout << "\t[ " << symTab[var->mTreeMemoryIndex].mNodeIdentifier << " := " 
-                 << symTab[exp->mTreeBranches[0]->mTreeMemoryIndex].mNodeIdentifier << " - " 
-                 << symTab[exp->mTreeBranches[1]->mTreeMemoryIndex].mNodeIdentifier
+            cout << "\t[ " 
+                 << symTab[condFirstArgIndex].mNodeIdentifier << " != " << symTab[condSecondArgIndex].mNodeIdentifier
                  << " ]\n";
-
-            symTab[var->mTreeMemoryIndex].mNodeValue = symTab[exp->mTreeBranches[0]->mTreeMemoryIndex].mNodeValue - 
-            symTab[exp->mTreeBranches[1]->mTreeMemoryIndex].mNodeValue;
             // do usunięcia
 
-            pushInstruction(code, ASM::kLoad, symTab[exp->mTreeBranches[0]->mTreeMemoryIndex].mNodeIndex);
-            pushInstruction(code, ASM::kSub, symTab[exp->mTreeBranches[1]->mTreeMemoryIndex].mNodeIndex);
+            pushInstruction(code, ASM::kLoad, symTab[condFirstArgIndex].mNodeIndex);
+            pushInstruction(code, ASM::kSub, symTab[condSecondArgIndex].mNodeIndex);
+            pushInstruction(code, ASM::kJPos);
+            pushInstruction(code, ASM::kLoad, symTab[condSecondArgIndex].mNodeIndex);
+            pushInstruction(code, ASM::kSub, symTab[condFirstArgIndex].mNodeIndex);
+            pushInstruction(code, ASM::kJPos);
+
+            jumpIndex = code.size();
+            pushInstruction(code, ASM::kJump);
+            
             break;
 
-        case ASTree::kMultiplication:
+        case ASTree::kGreater:
+            // do usunięcia
+            cout << "\tLOAD " << symTab[condFirstArgIndex].mNodeIndex << "\n";
+            cout << "\tSUB " << symTab[condSecondArgIndex].mNodeIndex;
+            cout << "\tJZERO\n";
+
+            cout << "\t[ " 
+                 << symTab[condFirstArgIndex].mNodeIdentifier << " > " << symTab[condSecondArgIndex].mNodeIdentifier
+                 << " ]\n";
+            // do usunięcia
+
+            pushInstruction(code, ASM::kLoad, symTab[condFirstArgIndex].mNodeIndex);
+            pushInstruction(code, ASM::kSub, symTab[condSecondArgIndex].mNodeIndex);
+
+            jumpIndex = code.size();
+            pushInstruction(code, ASM::kJZero);
 
             break;
 
-        case ASTree::kDivision:
+        case ASTree::kLess:
+            // do usunięcia
+            cout << "\tLOAD " << symTab[condSecondArgIndex].mNodeIndex << "\n";
+            cout << "\tSUB " << symTab[condFirstArgIndex].mNodeIndex;
+            cout << "\tJZERO\n";
+
+            cout << "\t[ " 
+                 << symTab[condFirstArgIndex].mNodeIdentifier << " < " << symTab[condSecondArgIndex].mNodeIdentifier
+                 << " ]\n";
+            // do usunięcia
+
+            pushInstruction(code, ASM::kLoad, symTab[condSecondArgIndex].mNodeIndex);
+            pushInstruction(code, ASM::kSub, symTab[condFirstArgIndex].mNodeIndex);
+
+            jumpIndex = code.size();
+            pushInstruction(code, ASM::kJZero);
 
             break;
 
-        case ASTree::kModulo:
+        case ASTree::kGreaterEqual:
+            // do usunięcia
+            cout << "\tLOAD " << symTab[condFirstArgIndex].mNodeIndex << "\n";
+            cout << "\tSUB " << symTab[condSecondArgIndex].mNodeIndex;
+            cout << "\n\tLOAD " << symTab[condSecondArgIndex].mNodeIndex;
+            cout << "\n\tSUB " << symTab[condFirstArgIndex].mNodeIndex;
+            cout << "\n\tJPOS ";
+
+            cout << "\t[ " 
+                 << symTab[condFirstArgIndex].mNodeIdentifier << " >= " << symTab[condSecondArgIndex].mNodeIdentifier
+                 << " ]\n";
+            // do usunięcia
+
+            pushInstruction(code, ASM::kLoad, symTab[condFirstArgIndex].mNodeIndex);
+            pushInstruction(code, ASM::kSub, symTab[condSecondArgIndex].mNodeIndex);
+            pushInstruction(code, ASM::kLoad, symTab[condSecondArgIndex].mNodeIndex);
+            pushInstruction(code, ASM::kSub, symTab[condFirstArgIndex].mNodeIndex);
+
+            jumpIndex = code.size();
+            pushInstruction(code, ASM::kJPos);
+
+            break;
+
+        case ASTree::kLessEqual:
+            // do usunięcia
+            cout << "\tLOAD " << symTab[condSecondArgIndex].mNodeIndex << "\n";
+            cout << "\tSUB " << symTab[condFirstArgIndex].mNodeIndex;
+            cout << "\n\tLOAD " << symTab[condFirstArgIndex].mNodeIndex;
+            cout << "\n\tSUB " << symTab[condSecondArgIndex].mNodeIndex;
+            cout << "\n\tJPOS ";
+
+            cout << "\t[ " 
+                 << symTab[condFirstArgIndex].mNodeIdentifier << " <= " << symTab[condSecondArgIndex].mNodeIdentifier
+                 << " ]\n";
+            // do usunięcia
+
+            pushInstruction(code, ASM::kLoad, symTab[condSecondArgIndex].mNodeIndex);
+            pushInstruction(code, ASM::kSub, symTab[condFirstArgIndex].mNodeIndex);
+            pushInstruction(code, ASM::kLoad, symTab[condFirstArgIndex].mNodeIndex);
+            pushInstruction(code, ASM::kSub, symTab[condSecondArgIndex].mNodeIndex);
+
+            jumpIndex = code.size();
+            pushInstruction(code, ASM::kJPos);
 
             break;
     }
 
-    cout << "\tSTORE " << symTab[var->mTreeMemoryIndex].mNodeIndex << "\n";
+    return jumpIndex;
+}
 
-    pushInstruction(code, ASM::kStore, symTab[var->mTreeMemoryIndex].mNodeIndex);
+void createRepeatCondition(vector<ASM> &code, vector<SymTabNode> &symTab, ASTree *tree, int repeatStart)
+{
+    ASTree *cond = tree->mTreeBranches[0];
+    int condFirstArgIndex = cond->mTreeBranches[0]->mTreeMemoryIndex;
+    int condSecondArgIndex = cond->mTreeBranches[1]->mTreeMemoryIndex;
+
+    switch (tree->mTreeBranches[0]->mTreeType) {
+        case ASTree::kEqual:
+            // do usunięcia
+            cout << "\tLOAD " << symTab[condFirstArgIndex].mNodeIndex << "\n";
+            cout << "\tSUB " << symTab[condSecondArgIndex].mNodeIndex;
+            cout << "\n\tJPOS ";
+            cout << "\n\tLOAD " << symTab[condSecondArgIndex].mNodeIndex;
+            cout << "\n\tSUB " << symTab[condFirstArgIndex].mNodeIndex;
+            cout << "\n\tJPOS ";
+
+            cout << "\t[ " 
+                 << symTab[condFirstArgIndex].mNodeIdentifier << " != " << symTab[condSecondArgIndex].mNodeIdentifier
+                 << " ]\n";
+            // do usunięcia
+
+            pushInstruction(code, ASM::kLoad, symTab[condFirstArgIndex].mNodeIndex);
+            pushInstruction(code, ASM::kSub, symTab[condSecondArgIndex].mNodeIndex);
+            pushInstruction(code, ASM::kJPos, repeatStart);
+            pushInstruction(code, ASM::kLoad, symTab[condSecondArgIndex].mNodeIndex);
+            pushInstruction(code, ASM::kSub, symTab[condFirstArgIndex].mNodeIndex);
+            pushInstruction(code, ASM::kJPos, repeatStart);
+            
+            break;
+
+        case ASTree::kNotEqual:
+            tree->mTreeBranches[0]->mTreeType = ASTree::kEqual;
+            // do usunięcia
+            cout << "\tLOAD " << symTab[condFirstArgIndex].mNodeIndex << "\n";
+            cout << "\tSUB " << symTab[condSecondArgIndex].mNodeIndex;
+            cout << "\n\tJPOS ";
+            cout << "\n\tLOAD " << symTab[condSecondArgIndex].mNodeIndex;
+            cout << "\n\tSUB " << symTab[condFirstArgIndex].mNodeIndex;
+            cout << "\n\tJPOS ";
+            cout << "\n\tJUMP ";
+
+            cout << "\t[ " 
+                 << symTab[condFirstArgIndex].mNodeIdentifier << " != " << symTab[condSecondArgIndex].mNodeIdentifier
+                 << " ]\n";
+            // do usunięcia
+
+            pushInstruction(code, ASM::kLoad, symTab[condFirstArgIndex].mNodeIndex);
+            pushInstruction(code, ASM::kSub, symTab[condSecondArgIndex].mNodeIndex);
+            pushInstruction(code, ASM::kJPos, static_cast<long long int>(code.size() + 5));
+            pushInstruction(code, ASM::kLoad, symTab[condSecondArgIndex].mNodeIndex);
+            pushInstruction(code, ASM::kSub, symTab[condFirstArgIndex].mNodeIndex);
+            pushInstruction(code, ASM::kJPos, static_cast<long long int>(code.size() + 2));
+            pushInstruction(code, ASM::kJZero, repeatStart);
+            
+
+            break;
+
+        case ASTree::kGreater:
+            // do usunięcia
+            cout << "\tLOAD " << symTab[condFirstArgIndex].mNodeIndex << "\n";
+            cout << "\tSUB " << symTab[condSecondArgIndex].mNodeIndex;
+            cout << "\tJZERO\n";
+
+            cout << "\t[ " 
+                 << symTab[condFirstArgIndex].mNodeIdentifier << " > " << symTab[condSecondArgIndex].mNodeIdentifier
+                 << " ]\n";
+            // do usunięcia
+
+            pushInstruction(code, ASM::kLoad, symTab[condFirstArgIndex].mNodeIndex);
+            pushInstruction(code, ASM::kSub, symTab[condSecondArgIndex].mNodeIndex);
+            pushInstruction(code, ASM::kJZero, repeatStart);
+
+            break;
+
+        case ASTree::kLess:
+            // do usunięcia
+            cout << "\tLOAD " << symTab[condSecondArgIndex].mNodeIndex << "\n";
+            cout << "\tSUB " << symTab[condFirstArgIndex].mNodeIndex;
+            cout << "\tJZERO\n";
+
+            cout << "\t[ " 
+                 << symTab[condFirstArgIndex].mNodeIdentifier << " < " << symTab[condSecondArgIndex].mNodeIdentifier
+                 << " ]\n";
+            // do usunięcia
+
+            pushInstruction(code, ASM::kLoad, symTab[condSecondArgIndex].mNodeIndex);
+            pushInstruction(code, ASM::kSub, symTab[condFirstArgIndex].mNodeIndex);
+            pushInstruction(code, ASM::kJZero, repeatStart);
+
+            break;
+
+        case ASTree::kGreaterEqual:
+            // do usunięcia
+            cout << "\tLOAD " << symTab[condFirstArgIndex].mNodeIndex << "\n";
+            cout << "\tSUB " << symTab[condSecondArgIndex].mNodeIndex;
+            cout << "\n\tLOAD " << symTab[condSecondArgIndex].mNodeIndex;
+            cout << "\n\tSUB " << symTab[condFirstArgIndex].mNodeIndex;
+            cout << "\n\tJPOS ";
+
+            cout << "\t[ " 
+                 << symTab[condFirstArgIndex].mNodeIdentifier << " >= " << symTab[condSecondArgIndex].mNodeIdentifier
+                 << " ]\n";
+            // do usunięcia
+
+            pushInstruction(code, ASM::kLoad, symTab[condFirstArgIndex].mNodeIndex);
+            pushInstruction(code, ASM::kSub, symTab[condSecondArgIndex].mNodeIndex);
+            pushInstruction(code, ASM::kLoad, symTab[condSecondArgIndex].mNodeIndex);
+            pushInstruction(code, ASM::kSub, symTab[condFirstArgIndex].mNodeIndex);
+            pushInstruction(code, ASM::kJPos, repeatStart);
+
+            break;
+
+        case ASTree::kLessEqual:
+            // do usunięcia
+            cout << "\tLOAD " << symTab[condSecondArgIndex].mNodeIndex << "\n";
+            cout << "\tSUB " << symTab[condFirstArgIndex].mNodeIndex;
+            cout << "\n\tLOAD " << symTab[condFirstArgIndex].mNodeIndex;
+            cout << "\n\tSUB " << symTab[condSecondArgIndex].mNodeIndex;
+            cout << "\n\tJPOS ";
+
+            cout << "\t[ " 
+                 << symTab[condFirstArgIndex].mNodeIdentifier << " <= " << symTab[condSecondArgIndex].mNodeIdentifier
+                 << " ]\n";
+            // do usunięcia
+
+            pushInstruction(code, ASM::kLoad, symTab[condSecondArgIndex].mNodeIndex);
+            pushInstruction(code, ASM::kSub, symTab[condFirstArgIndex].mNodeIndex);
+            pushInstruction(code, ASM::kLoad, symTab[condFirstArgIndex].mNodeIndex);
+            pushInstruction(code, ASM::kSub, symTab[condSecondArgIndex].mNodeIndex);
+            pushInstruction(code, ASM::kJPos, repeatStart);
+
+            break;
+    }
 }
 
 
-        /*    Instrukcje warunkowe i pętle    */
+void fixConditionJump(vector<ASM> &code, ASTree::TreeType type, int index)
+{
+    int jumpArg = code.size();
+
+    switch (type) {
+        case ASTree::kEqual:
+            code[index].mASMArgumentIndex = jumpArg;
+            code[index - 3].mASMArgumentIndex = jumpArg;
+            
+            break;
+
+        case ASTree::kNotEqual:
+            code[index].mASMArgumentIndex = jumpArg;
+            code[index - 1].mASMArgumentIndex = index + 1;
+            code[index - 4].mASMArgumentIndex = index + 1;
+
+            break;
+
+        case ASTree::kGreater:
+            code[index].mASMArgumentIndex = jumpArg;
+
+            break;
+
+        case ASTree::kLess:
+            code[index].mASMArgumentIndex = jumpArg;
+
+            break;
+
+        case ASTree::kGreaterEqual:
+            code[index].mASMArgumentIndex = jumpArg;
+
+            break;
+
+        case ASTree::kLessEqual:
+            code[index].mASMArgumentIndex = jumpArg;
+
+            break;
+    }
+}
+
+
+// Instrukcje i pętle
 
 void addInstructionIf(vector<ASM> &code, vector<SymTabNode> &symTab, ASTree *tree)
 {
     int jumpIndex = createCondition(code, symTab, tree);
-    generateCode(code, symTab, tree->mTreeBranches[1]);
+    generateCode(code, symTab, tree->mTreeBranches[1], 0);
 
-    code[jumpIndex].mASMArgumentIndex = code.size();
+    fixConditionJump(code, tree->mTreeBranches[0]->mTreeType, jumpIndex);
 }
 
 void addInstructionIfElse(vector<ASM> &code, vector<SymTabNode> &symTab, ASTree *tree)
 {
     int jumpToElseIndex = createCondition(code, symTab, tree);
-    generateCode(code, symTab, tree->mTreeBranches[1]);
+    generateCode(code, symTab, tree->mTreeBranches[1], 0);
 
     int jumpToEndIndex = code.size();
     pushInstruction(code, ASM::kJump);
 
-    code[jumpToElseIndex].mASMArgumentIndex = code.size();
-    generateCode(code, symTab, tree->mTreeBranches[2]);
+    fixConditionJump(code, tree->mTreeBranches[0]->mTreeType, jumpToElseIndex);
+
+    generateCode(code, symTab, tree->mTreeBranches[2], 0);
 
     code[jumpToEndIndex].mASMArgumentIndex = code.size();
 }
@@ -389,18 +652,360 @@ void addInstructionWhile(vector<ASM> &code, vector<SymTabNode> &symTab, ASTree *
     int jumpArg = code.size();
 
     int jumpIndex = createCondition(code, symTab, tree);
-    generateCode(code, symTab, tree->mTreeBranches[1]);
+    generateCode(code, symTab, tree->mTreeBranches[1], 0);
 
     pushInstruction(code, ASM::kJump, jumpArg);
 
-    code[jumpIndex].mASMArgumentIndex = code.size();
+    fixConditionJump(code, tree->mTreeBranches[0]->mTreeType, jumpIndex);
 }
 
 void addInstructionRepeat(vector<ASM> &code, vector<SymTabNode> &symTab, ASTree *tree)
 {
-    // int jumpArg = code.size();
-    // generateCode(code, symTab, tree->mTreeBranches[1]);
-// 
-    // int jumpIndex = createConditionRepeat(code, symTab, tree);
-    // code[jumpIndex].mASMArgumentIndex = jumpArg;
+    int jumpArg = code.size();
+    generateCode(code, symTab, tree->mTreeBranches[1], 0);
+
+    createRepeatCondition(code, symTab, tree, jumpArg);
 }
+
+
+/////////////////////////////////
+// Przypisanie oraz arytmetyka //
+/////////////////////////////////
+
+
+
+void addInstructionAssign(vector<ASM> &code, vector<SymTabNode> &symTab, ASTree *tree)
+{
+    ASTree *var = tree->mTreeBranches[0];
+    ASTree *exp = tree->mTreeBranches[1];
+
+    int auxVarIndex = symTab.size();
+
+
+    switch (exp->mTreeType) {
+        case ASTree::kIdentifier:
+            symTab[var->mTreeMemoryIndex].mNodeValue = symTab[exp->mTreeMemoryIndex].mNodeValue;
+
+
+            pushInstruction(code, ASM::kLoad, symTab[exp->mTreeMemoryIndex].mNodeIndex);
+
+            break;
+
+        case ASTree::kNumber:
+            symTab[var->mTreeMemoryIndex].mNodeValue = symTab[exp->mTreeMemoryIndex].mNodeValue;
+
+            pushInstruction(code, ASM::kLoad, symTab[exp->mTreeMemoryIndex].mNodeIndex);
+
+            break;
+
+        case ASTree::kAddition:
+            symTab[var->mTreeMemoryIndex].mNodeValue = symTab[exp->mTreeBranches[0]->mTreeMemoryIndex].mNodeValue + 
+                                                       symTab[exp->mTreeBranches[1]->mTreeMemoryIndex].mNodeValue;
+
+
+            pushInstruction(code, ASM::kLoad, symTab[exp->mTreeBranches[0]->mTreeMemoryIndex].mNodeIndex);
+            pushInstruction(code, ASM::kAdd, symTab[exp->mTreeBranches[1]->mTreeMemoryIndex].mNodeIndex);
+
+            break;
+
+        case ASTree::kSubtraction:
+            symTab[var->mTreeMemoryIndex].mNodeValue = symTab[exp->mTreeBranches[0]->mTreeMemoryIndex].mNodeValue - 
+                                                       symTab[exp->mTreeBranches[1]->mTreeMemoryIndex].mNodeValue;
+
+
+            pushInstruction(code, ASM::kLoad, symTab[exp->mTreeBranches[0]->mTreeMemoryIndex].mNodeIndex);
+            pushInstruction(code, ASM::kSub, symTab[exp->mTreeBranches[1]->mTreeMemoryIndex].mNodeIndex);
+            
+            break;
+
+        case ASTree::kMultiplication:
+            symTab[var->mTreeMemoryIndex].mNodeValue = symTab[exp->mTreeBranches[0]->mTreeMemoryIndex].mNodeValue * 
+                                                       symTab[exp->mTreeBranches[1]->mTreeMemoryIndex].mNodeValue;
+
+            if (symTab[exp->mTreeBranches[1]->mTreeMemoryIndex].mNodeIdentifier == "2")
+            {
+                pushInstruction(code, ASM::kLoad, symTab[exp->mTreeBranches[0]->mTreeMemoryIndex].mNodeIndex);
+                pushInstruction(code, ASM::kAdd, 0);
+            }
+            else if (symTab[exp->mTreeBranches[0]->mTreeMemoryIndex].mNodeIdentifier == "2")
+            {
+                pushInstruction(code, ASM::kLoad, symTab[exp->mTreeBranches[1]->mTreeMemoryIndex].mNodeIndex);
+                pushInstruction(code, ASM::kAdd, 0);
+            }
+            else
+            {
+                //////////////////////////////
+                // auxVarIndex:      result //
+                // auxVarIndex + 1:   xcopy //
+                // auxVarIndex + 2:   ycopy //
+                // auxVarIndex + 3:    temp //
+                //////////////////////////////
+
+
+                // wynik = 0
+                pushInstruction(code, ASM::kSet, 0);
+                pushInstruction(code, ASM::kStore, auxVarIndex);
+                // xcopy = x
+                pushInstruction(code, ASM::kLoad, symTab[exp->mTreeBranches[0]->mTreeMemoryIndex].mNodeIndex);
+                pushInstruction(code, ASM::kStore, auxVarIndex + 1);
+                // ycopy = y
+                pushInstruction(code, ASM::kLoad, symTab[exp->mTreeBranches[1]->mTreeMemoryIndex].mNodeIndex);
+                pushInstruction(code, ASM::kStore, auxVarIndex + 2);
+
+
+                // while ycopy > 0
+                pushInstruction(code, ASM::kLoad, auxVarIndex + 2);
+                pushInstruction(code, ASM::kJZero, static_cast<long long int>(code.size() + 17));
+
+                // temp = (ycopy / 2) * 2
+                pushInstruction(code, ASM::kHalf);
+                pushInstruction(code, ASM::kAdd, 0);
+                pushInstruction(code, ASM::kStore, auxVarIndex + 3);
+
+
+                // if (ycopy - temp) == 0
+                pushInstruction(code, ASM::kLoad, auxVarIndex + 2);
+                pushInstruction(code, ASM::kSub, auxVarIndex + 3);
+                pushInstruction(code, ASM::kJZero, static_cast<long long int>(code.size() + 4));
+            
+                // result = result + xcopy 
+                pushInstruction(code, ASM::kLoad, auxVarIndex);
+                pushInstruction(code, ASM::kAdd, auxVarIndex + 1);
+                pushInstruction(code, ASM::kStore, auxVarIndex);
+                // koniec ifa
+                
+
+                // xcopy = xcopy * 2
+                pushInstruction(code, ASM::kLoad, auxVarIndex + 1);
+                pushInstruction(code, ASM::kAdd, 0);
+                pushInstruction(code, ASM::kStore, auxVarIndex + 1);
+
+                // ycopy = ycopy / 2
+                pushInstruction(code, ASM::kLoad, auxVarIndex + 2);
+                pushInstruction(code, ASM::kHalf);
+                pushInstruction(code, ASM::kStore, auxVarIndex + 2);
+
+                pushInstruction(code, ASM::kJump, static_cast<long long int>(code.size() - 17));
+                // koniec while
+
+
+                // return result
+                pushInstruction(code, ASM::kLoad, auxVarIndex);
+            }
+
+            break;
+
+        case ASTree::kDivision:
+            if (symTab[exp->mTreeBranches[1]->mTreeMemoryIndex].mNodeIdentifier == "0")
+            {
+                symTab[var->mTreeMemoryIndex].mNodeValue = 0; 
+
+                pushInstruction(code, ASM::kSet, 0);
+            }
+            else if (symTab[exp->mTreeBranches[1]->mTreeMemoryIndex].mNodeIdentifier == "2")
+            {
+                symTab[var->mTreeMemoryIndex].mNodeValue = symTab[exp->mTreeBranches[0]->mTreeMemoryIndex].mNodeValue / 
+                                                           symTab[exp->mTreeBranches[1]->mTreeMemoryIndex].mNodeValue;
+
+                pushInstruction(code, ASM::kLoad, symTab[exp->mTreeBranches[0]->mTreeMemoryIndex].mNodeIndex);
+                pushInstruction(code, ASM::kHalf);
+            }
+            else
+            {
+                symTab[var->mTreeMemoryIndex].mNodeValue = symTab[exp->mTreeBranches[0]->mTreeMemoryIndex].mNodeValue / 
+                                                           symTab[exp->mTreeBranches[1]->mTreeMemoryIndex].mNodeValue;
+
+                ///////////////////////////////
+                // auxVarIndex:       result //
+                // auxVarIndex + 1:   modulo //
+                // auxVarIndex + 2:  divisor //
+                // auxVarIndex + 3:   binary //
+                ///////////////////////////////
+
+
+
+                // result = 0 && modulo = 0
+                pushInstruction(code, ASM::kSet, 0);
+                pushInstruction(code, ASM::kStore, auxVarIndex);
+                pushInstruction(code, ASM::kStore, auxVarIndex + 1);
+
+
+                // if y == 0
+                pushInstruction(code, ASM::kLoad, symTab[exp->mTreeBranches[1]->mTreeMemoryIndex].mNodeIndex);
+                pushInstruction(code, ASM::kJZero, static_cast<long long int>(code.size() + 38));
+
+                // modulo = x
+                pushInstruction(code, ASM::kLoad, symTab[exp->mTreeBranches[0]->mTreeMemoryIndex].mNodeIndex);
+                pushInstruction(code, ASM::kStore, auxVarIndex + 1);
+                
+
+                // while1 modulo >= y
+                pushInstruction(code, ASM::kLoad, auxVarIndex + 1);
+                pushInstruction(code, ASM::kSub, symTab[exp->mTreeBranches[1]->mTreeMemoryIndex].mNodeIndex);
+                pushInstruction(code, ASM::kLoad, symTab[exp->mTreeBranches[1]->mTreeMemoryIndex].mNodeIndex);
+                pushInstruction(code, ASM::kSub, auxVarIndex + 1);
+                pushInstruction(code, ASM::kJPos, static_cast<long long int>(code.size() + 30));
+
+                // divisor = y
+                pushInstruction(code, ASM::kLoad, symTab[exp->mTreeBranches[1]->mTreeMemoryIndex].mNodeIndex);
+                pushInstruction(code, ASM::kStore, auxVarIndex + 2);
+                // binary = 1
+                pushInstruction(code, ASM::kSet, 1);
+                pushInstruction(code, ASM::kStore, auxVarIndex + 3);
+
+
+                // while2 divisor <= modulo
+                pushInstruction(code, ASM::kLoad, auxVarIndex + 2);
+                pushInstruction(code, ASM::kSub, auxVarIndex + 1);
+                pushInstruction(code, ASM::kLoad, auxVarIndex + 2);
+                pushInstruction(code, ASM::kSub, auxVarIndex + 1);
+                pushInstruction(code, ASM::kJPos, static_cast<long long int>(code.size() + 8));
+
+                // divisor = divisor * 2
+                pushInstruction(code, ASM::kLoad, auxVarIndex + 2);
+                pushInstruction(code, ASM::kAdd, 0);
+                pushInstruction(code, ASM::kStore, auxVarIndex + 2);
+                // binary = binary * 2
+                pushInstruction(code, ASM::kLoad, auxVarIndex + 3);
+                pushInstruction(code, ASM::kAdd, 0);
+                pushInstruction(code, ASM::kStore, auxVarIndex + 3);
+                
+                pushInstruction(code, ASM::kJump, static_cast<long long int>(code.size() - 11));
+                // koniec while2
+
+                
+                // divisor = divisor / 2
+                pushInstruction(code, ASM::kLoad, auxVarIndex + 2);
+                pushInstruction(code, ASM::kHalf);
+                pushInstruction(code, ASM::kStore, auxVarIndex + 2);
+                // binary = binary / 2
+                pushInstruction(code, ASM::kLoad, auxVarIndex + 3);
+                pushInstruction(code, ASM::kHalf);
+                pushInstruction(code, ASM::kStore, auxVarIndex + 3);
+
+                
+                // result = result + binary
+                pushInstruction(code, ASM::kLoad, auxVarIndex);
+                pushInstruction(code, ASM::kAdd, auxVarIndex + 3);
+                pushInstruction(code, ASM::kStore, auxVarIndex);
+                // modulo = modulo - divisor
+                pushInstruction(code, ASM::kLoad, auxVarIndex + 1);
+                pushInstruction(code, ASM::kSub, auxVarIndex + 2);
+                pushInstruction(code, ASM::kStore, auxVarIndex + 1);
+
+                pushInstruction(code, ASM::kJump, static_cast<long long int>(code.size() - 33));
+                // koniec while1
+               
+
+                // return result
+                pushInstruction(code, ASM::kLoad, auxVarIndex);
+            }
+
+            break;
+
+        case ASTree::kModulo:
+            if (symTab[exp->mTreeBranches[1]->mTreeMemoryIndex].mNodeIdentifier == "0")
+            {
+                symTab[var->mTreeMemoryIndex].mNodeValue = 0; 
+
+                pushInstruction(code, ASM::kSet, 0);
+            }
+            else if (symTab[exp->mTreeBranches[1]->mTreeMemoryIndex].mNodeIdentifier == "2")
+            {
+                symTab[var->mTreeMemoryIndex].mNodeValue = symTab[exp->mTreeBranches[0]->mTreeMemoryIndex].mNodeValue % 
+                                                           symTab[exp->mTreeBranches[1]->mTreeMemoryIndex].mNodeValue;
+
+                pushInstruction(code, ASM::kLoad, symTab[exp->mTreeBranches[0]->mTreeMemoryIndex].mNodeIndex);
+                pushInstruction(code, ASM::kHalf);
+                pushInstruction(code, ASM::kAdd, 0);
+                pushInstruction(code, ASM::kStore, auxVarIndex);
+
+                pushInstruction(code, ASM::kLoad, symTab[exp->mTreeBranches[0]->mTreeMemoryIndex].mNodeIndex);
+                pushInstruction(code, ASM::kSub, auxVarIndex);
+            }
+            else
+            {
+                symTab[var->mTreeMemoryIndex].mNodeValue = symTab[exp->mTreeBranches[0]->mTreeMemoryIndex].mNodeValue % 
+                                                           symTab[exp->mTreeBranches[1]->mTreeMemoryIndex].mNodeValue;
+
+                ///////////////////////////////
+                // auxVarIndex:       result //
+                // auxVarIndex + 1:   modulo //
+                // auxVarIndex + 2:  divisor //
+                // auxVarIndex + 3:   binary //
+                ///////////////////////////////
+
+
+                // result = 0 && modulo = 0
+                pushInstruction(code, ASM::kSet, 0);
+                pushInstruction(code, ASM::kStore, auxVarIndex);
+                pushInstruction(code, ASM::kStore, auxVarIndex + 1);
+
+
+                // if y == 0
+                pushInstruction(code, ASM::kLoad, symTab[exp->mTreeBranches[1]->mTreeMemoryIndex].mNodeIndex);
+                pushInstruction(code, ASM::kJZero, static_cast<long long int>(code.size() + 29));
+
+                // modulo = x
+                pushInstruction(code, ASM::kLoad, symTab[exp->mTreeBranches[0]->mTreeMemoryIndex].mNodeIndex);
+                pushInstruction(code, ASM::kStore, auxVarIndex + 1);
+                
+
+                // while1 modulo >= y
+                pushInstruction(code, ASM::kLoad, auxVarIndex + 1);
+                pushInstruction(code, ASM::kSub, symTab[exp->mTreeBranches[1]->mTreeMemoryIndex].mNodeIndex);
+                pushInstruction(code, ASM::kLoad, symTab[exp->mTreeBranches[1]->mTreeMemoryIndex].mNodeIndex);
+                pushInstruction(code, ASM::kSub, auxVarIndex + 1);
+                pushInstruction(code, ASM::kJPos, static_cast<long long int>(code.size() + 21));
+
+                // divisor = y
+                pushInstruction(code, ASM::kLoad, symTab[exp->mTreeBranches[1]->mTreeMemoryIndex].mNodeIndex);
+                pushInstruction(code, ASM::kStore, auxVarIndex + 2);
+                // binary = 1
+                pushInstruction(code, ASM::kSet, 1);
+                pushInstruction(code, ASM::kStore, auxVarIndex + 3);
+
+
+                // while2 divisor <= modulo
+                pushInstruction(code, ASM::kLoad, auxVarIndex + 2);
+                pushInstruction(code, ASM::kSub, auxVarIndex + 1);
+                pushInstruction(code, ASM::kLoad, auxVarIndex + 2);
+                pushInstruction(code, ASM::kSub, auxVarIndex + 1);
+                pushInstruction(code, ASM::kJPos, static_cast<long long int>(code.size() + 5));
+
+                // divisor = divisor * 2
+                pushInstruction(code, ASM::kLoad, auxVarIndex + 2);
+                pushInstruction(code, ASM::kAdd, 0);
+                pushInstruction(code, ASM::kStore, auxVarIndex + 2);
+
+                pushInstruction(code, ASM::kJump, static_cast<long long int>(code.size() - 8));
+                // koniec while2
+
+                
+                // divisor = divisor / 2
+                pushInstruction(code, ASM::kLoad, auxVarIndex + 2);
+                pushInstruction(code, ASM::kHalf);
+                pushInstruction(code, ASM::kStore, auxVarIndex + 2);
+
+
+                // modulo = modulo - divisor
+                pushInstruction(code, ASM::kLoad, auxVarIndex + 1);
+                pushInstruction(code, ASM::kSub, auxVarIndex + 2);
+                pushInstruction(code, ASM::kStore, auxVarIndex + 1);
+
+                pushInstruction(code, ASM::kJump, static_cast<long long int>(code.size() - 24));
+                // koniec while1
+               
+
+                // return result
+                pushInstruction(code, ASM::kLoad, auxVarIndex + 1);
+            }
+
+            break;
+    }
+
+    cout << "\tSTORE " << symTab[var->mTreeMemoryIndex].mNodeIndex << "\n";
+
+    pushInstruction(code, ASM::kStore, symTab[var->mTreeMemoryIndex].mNodeIndex);
+}
+

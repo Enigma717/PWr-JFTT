@@ -1,0 +1,10 @@
+PROGRAM IS
+VAR b, c, d
+BEGIN 
+    b := 2;
+    c := 1024;
+    
+    c := c % b;
+
+    WRITE c;
+END

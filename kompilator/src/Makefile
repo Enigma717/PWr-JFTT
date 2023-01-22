@@ -1,8 +1,8 @@
 all: bison flex
-	g++ --std=c++17 -o compiler main.cpp ./frontend/parser.cpp ./frontend/lexer.c
+	g++ -W -pedantic --std=c++17 -o compiler main.cpp ./frontend/parser.cpp ./frontend/lexer.c
 
 bison:
-	bison -d -o ./frontend/parser.cpp ./frontend/parser.ypp
+	bison -Wall -d -o ./frontend/parser.cpp ./frontend/parser.ypp
 
 flex:
 	flex -o ./frontend/lexer.c ./frontend/lexer.l

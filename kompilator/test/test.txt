@@ -1,37 +1,40 @@
-PROCEDURE test(x, y, z) IS
-VAR a, b, c
+PROCEDURE test(x, y) IS
+VAR a
 BEGIN
-    x := 3;
     a := 10;
-
-    IF x > a THEN
-        WRITE x;
-        x := 4;
-        b := x + 10;
-    ENDIF
-END
-
-PROCEDURE xd(a, b, c, d, e, f) IS
-BEGIN
-    a := 1 + 2;
-    b := a;
-    c := 10;
-    d := c * 100;
-    e := 100 / 5;
-
-    REPEAT
-        WRITE 0;
-        a := a - 1;
-    UNTIL a > 1;
+    x := x + a;
+    y := y + x;
 END
 
 
 PROGRAM IS
-VAR a, b, c
+VAR a, b
 BEGIN
-    test(a, b, c);
-    b := 10;
-    READ a;
-    WRITE 10;
+    a := 32;
+    b := 50;
+
+    test(a, b);
+    
+    
+    WRITE a;
     WRITE b;
 END
+
+[
+    a = 32
+    b = 50
+
+    test(a, b):
+        a = 32 + 10 = 42
+        b = 50 + 42 = 92
+    
+    xd(a, a, a, a, a, a):
+        a = 42 + 10 = 52
+
+        test(10, a):
+            10 = 10 + 10 = 20
+            a = 52 + 20 = 72
+
+    a: 72
+    b: 92
+]

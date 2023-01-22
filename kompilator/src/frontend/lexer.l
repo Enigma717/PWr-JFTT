@@ -42,7 +42,7 @@ NUMBER                      [0-9]+
 
 
     /* Białe znaki */
-[ \t\n]                     { ECHO; }
+[ \t\n\r]                     { ECHO; }
 
 
     /* Tokeny słów kluczowych języka + znaki specjalne i operatory */

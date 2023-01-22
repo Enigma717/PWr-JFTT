@@ -97,9 +97,11 @@ int main(int argc, char** argv)
         return 1;
     }
 
+
     vector<SymTabNode> symbolTable;
     ASTree programSyntax(ASTree::kProgram, -1, 0, {});
     vector<ASM> programCode;
+
 
     FILE *io = fopen(argv[1], "r");
 
@@ -149,7 +151,8 @@ int main(int argc, char** argv)
  
 
     addConstants(programCode, symbolTable);
-    generateCode(programCode, symbolTable, &programSyntax);
+    
+    generateCode(programCode, symbolTable, &programSyntax, programCode.size());
 
     pushInstruction(programCode, ASM::kHalt);
 
