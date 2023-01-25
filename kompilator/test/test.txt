@@ -6,6 +6,15 @@ BEGIN
     y := y + x;
 END
 
+PROCEDURE testtest(x, y, z) IS
+VAR a
+BEGIN
+    a := 10;
+    x := x + a;
+    y := y + x;
+END
+
+
 
 PROGRAM IS
 VAR a, b
@@ -14,27 +23,9 @@ BEGIN
     b := 50;
 
     test(a, b);
-    
-    
     WRITE a;
     WRITE b;
+
+    testtest(a, a, a);
+    WRITE a;
 END
-
-[
-    a = 32
-    b = 50
-
-    test(a, b):
-        a = 32 + 10 = 42
-        b = 50 + 42 = 92
-    
-    xd(a, a, a, a, a, a):
-        a = 42 + 10 = 52
-
-        test(10, a):
-            10 = 10 + 10 = 20
-            a = 52 + 20 = 72
-
-    a: 72
-    b: 92
-]

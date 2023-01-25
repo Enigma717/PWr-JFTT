@@ -8,7 +8,6 @@
 
 #include <iostream>
 #include <algorithm>
-#include <map>
 
 #include "./asm.h"
 
@@ -18,6 +17,7 @@ using std::cout;
 map<string, long long int> procsOffsets;
 map<string, long long int> procsStarts;
 int offset = 1;
+int asmLoopDepth = 0;
 
 
 //////////////////////
@@ -47,7 +47,6 @@ void generateCode(vector<ASM> &code, vector<SymTabNode> &symTab, ASTree *tree, c
     }
 
     bool skipComms = false;
-
 
     switch(tree->mTreeType) {
         // case ASTree::kIdentifier:
@@ -139,6 +138,8 @@ void generateCode(vector<ASM> &code, vector<SymTabNode> &symTab, ASTree *tree, c
             skipComms = true;
             addInstructionRepeat(code, symTab, tree);
 
+            asmLoopDepth--;
+
             break;
 
         case ASTree::kWhileLoop:
@@ -146,6 +147,8 @@ void generateCode(vector<ASM> &code, vector<SymTabNode> &symTab, ASTree *tree, c
 
             skipComms = true;
             addInstructionWhile(code, symTab, tree);
+
+            asmLoopDepth--;
 
             break;
 
@@ -650,8 +653,10 @@ void addInstructionIfElse(vector<ASM> &code, vector<SymTabNode> &symTab, ASTree 
 void addInstructionWhile(vector<ASM> &code, vector<SymTabNode> &symTab, ASTree *tree)
 {
     int jumpArg = code.size();
-
     int jumpIndex = createCondition(code, symTab, tree);
+
+    asmLoopDepth++;
+
     generateCode(code, symTab, tree->mTreeBranches[1], 0);
 
     pushInstruction(code, ASM::kJump, jumpArg);
@@ -662,6 +667,9 @@ void addInstructionWhile(vector<ASM> &code, vector<SymTabNode> &symTab, ASTree *
 void addInstructionRepeat(vector<ASM> &code, vector<SymTabNode> &symTab, ASTree *tree)
 {
     int jumpArg = code.size();
+    
+    asmLoopDepth++;
+    
     generateCode(code, symTab, tree->mTreeBranches[1], 0);
 
     createRepeatCondition(code, symTab, tree, jumpArg);
@@ -742,7 +750,7 @@ void addInstructionAssign(vector<ASM> &code, vector<SymTabNode> &symTab, ASTree 
                 //////////////////////////////
 
 
-                // wynik = 0
+                // result = 0
                 pushInstruction(code, ASM::kSet, 0);
                 pushInstruction(code, ASM::kStore, auxVarIndex);
                 // xcopy = x
@@ -810,6 +818,14 @@ void addInstructionAssign(vector<ASM> &code, vector<SymTabNode> &symTab, ASTree 
                 pushInstruction(code, ASM::kLoad, symTab[exp->mTreeBranches[0]->mTreeMemoryIndex].mNodeIndex);
                 pushInstruction(code, ASM::kHalf);
             }
+            else if (symTab[exp->mTreeBranches[1]->mTreeMemoryIndex].mNodeValue == 2 && asmLoopDepth == 0)
+            {
+                symTab[var->mTreeMemoryIndex].mNodeValue = symTab[exp->mTreeBranches[0]->mTreeMemoryIndex].mNodeValue / 
+                                                           symTab[exp->mTreeBranches[1]->mTreeMemoryIndex].mNodeValue;
+
+                pushInstruction(code, ASM::kLoad, symTab[exp->mTreeBranches[0]->mTreeMemoryIndex].mNodeIndex);
+                pushInstruction(code, ASM::kHalf);
+            }
             else
             {
                 symTab[var->mTreeMemoryIndex].mNodeValue = symTab[exp->mTreeBranches[0]->mTreeMemoryIndex].mNodeValue / 
@@ -821,7 +837,6 @@ void addInstructionAssign(vector<ASM> &code, vector<SymTabNode> &symTab, ASTree 
                 // auxVarIndex + 2:  divisor //
                 // auxVarIndex + 3:   binary //
                 ///////////////////////////////
-
 
 
                 // result = 0 && modulo = 0
@@ -911,6 +926,19 @@ void addInstructionAssign(vector<ASM> &code, vector<SymTabNode> &symTab, ASTree 
                 pushInstruction(code, ASM::kSet, 0);
             }
             else if (symTab[exp->mTreeBranches[1]->mTreeMemoryIndex].mNodeIdentifier == "2")
+            {
+                symTab[var->mTreeMemoryIndex].mNodeValue = symTab[exp->mTreeBranches[0]->mTreeMemoryIndex].mNodeValue % 
+                                                           symTab[exp->mTreeBranches[1]->mTreeMemoryIndex].mNodeValue;
+
+                pushInstruction(code, ASM::kLoad, symTab[exp->mTreeBranches[0]->mTreeMemoryIndex].mNodeIndex);
+                pushInstruction(code, ASM::kHalf);
+                pushInstruction(code, ASM::kAdd, 0);
+                pushInstruction(code, ASM::kStore, auxVarIndex);
+
+                pushInstruction(code, ASM::kLoad, symTab[exp->mTreeBranches[0]->mTreeMemoryIndex].mNodeIndex);
+                pushInstruction(code, ASM::kSub, auxVarIndex);
+            }
+            else if (symTab[exp->mTreeBranches[1]->mTreeMemoryIndex].mNodeValue == 2 && asmLoopDepth == 0)
             {
                 symTab[var->mTreeMemoryIndex].mNodeValue = symTab[exp->mTreeBranches[0]->mTreeMemoryIndex].mNodeValue % 
                                                            symTab[exp->mTreeBranches[1]->mTreeMemoryIndex].mNodeValue;

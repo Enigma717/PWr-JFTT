@@ -3,8 +3,14 @@ VAR b, c, d
 BEGIN 
     b := 2;
     c := 1024;
-    
-    c := c % b;
+    d := 0;
+
+        c := c / b;
+    WHILE d < 2 DO
+        b := b + 1;
+        c := c / b;
+        d := d + 1;
+    ENDWHILE
 
     WRITE c;
 END

@@ -30,10 +30,12 @@
     extern int yylineno;
     extern FILE* yyin;
 
-    const string kColorReset = "\033[0m";
-    const string kColorRed   = "\033[31m";
-    const string kColorGreen = "\033[32m";
+    const string kColorReset  = "\033[0m";
+    const string kColorRed    = "\033[31m";
+    const string kColorGreen  = "\033[32m";
+    const string kColorYellow = "\033[33m";
 
+    extern int loopDepth;
     int argCount = 0;
 %}
 
@@ -199,11 +201,17 @@ condition:
 value:
     T_NUM                           { $$ = newTreeValue(ASTree::kNumber, $1); }
     | T_IDENTIFIER                  {
-                                        if (symbolTable[$1].mNodeIsInitialized == false) 
+                                        if (symbolTable[$1].mNodeIsInitialized == false && loopDepth == 0) 
                                         { 
-                                            string errorMsg = "Użycie niezadeklarowanej/niezainicjalizowanej zmiennej \'" + symbolTable[$1].mNodeIdentifier + "\'";
+                                            string errorMsg = "Użycie niezainicjalizowanej zmiennej \'" + symbolTable[$1].mNodeIdentifier + "\'";
                                             yyerror(symbolTable, programTree, errorMsg);
-                                        } 
+                                        }
+                                        else if (symbolTable[$1].mNodeIsInitialized == false && loopDepth > 0)
+                                        {
+                                            string errorMsg = "Zmienna \'" + symbolTable[$1].mNodeIdentifier + "\' mogła nie zostać zainicjalizowana";
+                                            std::cerr << kColorYellow << "\n\t[WARNING] Linia nr " << yylineno << ": " << kColorGreen << errorMsg << kColorReset << "\n";
+                                        }
+
                                         $$ = newTreeValue(ASTree::kIdentifier, $1); 
                                     }
     ;
@@ -212,9 +220,9 @@ value:
 %%
 
 
-void yyerror(vector<SymTabNode> &symbolTable, ASTree &programTree, string s)
+void yyerror(vector<SymTabNode> &symbolTable, ASTree &programTree, string message)
 {
-    std::cerr << kColorRed << "\n\t[ERROR] Linia nr " << yylineno << ": " << kColorGreen << s << kColorReset << "\n";
+    std::cerr << kColorRed << "\n\t[ERROR] Linia nr " << yylineno << ": " << kColorGreen << message << kColorReset << "\n";
     exit(1);
 }
 

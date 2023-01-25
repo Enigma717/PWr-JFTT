@@ -10,7 +10,11 @@
 #define ASM_H
 
 
+#include <map>
+
 #include "./symtab.h"
+
+using std::map;
 
 
 class ASM {

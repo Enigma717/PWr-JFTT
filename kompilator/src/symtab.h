@@ -16,9 +16,6 @@
 using std::vector;
 
 
-// vector<SymTabNode> symbolTable;
-
-
 int insertProcToSymTab(vector<SymTabNode> &symTab, string identifier);
 int insertVarToSymTab(vector<SymTabNode> &symTab, string identifier);
 int insertNumToSymTab(vector<SymTabNode> &symTab, string numberString);

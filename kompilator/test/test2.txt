@@ -1,13 +1,17 @@
 PROGRAM IS
-VAR b, c, d
+VAR b, c, d, e
 BEGIN 
     b := 2;
     d := 0;
     c := 1024;
 
     WHILE d < 1000 DO
-        c := c / b;
-        c := c * b;
+        e := 0;
+        WHILE e < 10 DO
+            c := c / b;
+            c := c * b;
+            e := e + 1;
+        ENDWHILE
         d := d + 1;
     ENDWHILE
 

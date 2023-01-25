@@ -16,6 +16,7 @@
 
     int scope = 0;
     int paramCount = 0;
+    int loopDepth = 0;
 %}
 
 
@@ -56,11 +57,11 @@ NUMBER                      [0-9]+
 "THEN"                      { ECHO; return yylval.token = T_THEN; }
 "ELSE"                      { ECHO; return yylval.token = T_ELSE; }
 "ENDIF"                     { ECHO; return yylval.token = T_ENDIF; }
-"WHILE"                     { ECHO; return yylval.token = T_WHILE; }
+"WHILE"                     { ECHO; loopDepth++; return yylval.token = T_WHILE; }
 "DO"                        { ECHO; return yylval.token = T_DO; }
-"ENDWHILE"                  { ECHO; return yylval.token = T_ENDWHILE; }
-"REPEAT"                    { ECHO; return yylval.token = T_REPEAT; }
-"UNTIL"                     { ECHO; return yylval.token = T_UNTIL; }
+"ENDWHILE"                  { ECHO; loopDepth--; return yylval.token = T_ENDWHILE; }
+"REPEAT"                    { ECHO; loopDepth++; return yylval.token = T_REPEAT; }
+"UNTIL"                     { ECHO; loopDepth--; return yylval.token = T_UNTIL; }
 "READ"                      { ECHO; return yylval.token = T_READ; }
 "WRITE"                     { ECHO; return yylval.token = T_WRITE; }
 
@@ -138,6 +139,7 @@ NUMBER                      [0-9]+
 <BEGIN_MAIN>"IS"            { 
                                 yylval.tab_index = insertProcToSymTab(symbolTable, "main"); 
 
+                                ECHO; 
                                 BEGIN(0);
                                 return T_IS;
                             }

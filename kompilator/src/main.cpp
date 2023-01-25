@@ -17,7 +17,6 @@
 using std::cout;
 
 
-extern int yydebug;
 extern void run_parser(FILE *file, vector<SymTabNode> &symbolTable, ASTree &programTree);
 extern void yyerror(vector<SymTabNode> &symbolTable, ASTree &programTree, string s);
 
@@ -93,42 +92,29 @@ int main(int argc, char** argv)
 {
     if (argc < 2)
     {
-        std::cerr << "\n\t\033[31m[ERROR] Nie podano pliku źródłowego\033[0m\n";
+        std::cerr << "\n\t\033[31m[ERROR] Nie podano pliku źródłowego\033[0m\n\n";
         return 1;
     }
 
 
-    vector<SymTabNode> symbolTable;
     ASTree programSyntax(ASTree::kProgram, -1, 0, {});
+    vector<SymTabNode> symbolTable;
     vector<ASM> programCode;
 
 
     FILE *io = fopen(argv[1], "r");
-
-    if (io)
-    {
-        run_parser(io, symbolTable, programSyntax);
-        fclose(io);
-    }
-    else
+    
+    if (!io)
     {
         string fileName(argv[1]);
-        string errorMsg = "Nie udało się otworzyć pliku \'" + fileName + "\'"; 
-        yyerror(symbolTable, programSyntax, errorMsg);
+        string errorMsg = "[ERROR] Nie udało się otworzyć pliku \'" + fileName + "\'"; 
+        std::cerr << "\n\t\033[31m" << errorMsg << "\033[0m\n\n";
+        return 1;
     }
 
+    run_parser(io, symbolTable, programSyntax);
+    fclose(io);
 
-    cout << "\n\n\nFROM MAIN: ";
-      
-    cout << "\n\nSymbol Table: ";
-    for (SymTabNode node : symbolTable)
-    {
-        cout << "\n>> Variable -> type: " << node.mNodeType 
-             << "\tID: " << node.mNodeIdentifier 
-             << "\t\tValue: " << node.mNodeValue 
-             << "\tIndex: " << node.mNodeIndex
-             << "\tParamCount: " << node.mNodeParamCount; 
-    }
 
     cout << "\n\nASTREE:\n";
     printPreorder(symbolTable, &programSyntax, 0);

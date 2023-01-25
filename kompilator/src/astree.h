@@ -10,12 +10,9 @@
 #define ASTREE_H
 
 
-#include <string>
-#include <map>
 #include <vector>
 #include <initializer_list>
 
-using std::string, std::map;
 using std::vector, std::initializer_list;
 
 
