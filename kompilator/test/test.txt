@@ -1,31 +1,50 @@
 PROCEDURE test(x, y) IS
 VAR a
 BEGIN
-    a := 10;
-    x := x + a;
-    y := y + x;
+    x := 10;
+    a := x;
+    y := y + a;
 END
 
-PROCEDURE testtest(x, y, z) IS
+PROCEDURE testtest(i, j, k) IS
 VAR a
 BEGIN
-    a := 10;
-    x := x + a;
-    y := y + x;
-END
+    i := 10;
+    a := i;
 
+    test(i, a);
+    [ i = 10
+      a = 20 ]
+
+
+    k := i; [ k = 10 ]
+
+    j := j + k; [ j = 60 + 10 ]
+
+END
 
 
 PROGRAM IS
-VAR a, b
+VAR a, b, c
 BEGIN
     a := 32;
     b := 50;
 
+    c := a + b;
+
     test(a, b);
+    [ a = 10
+      b = 60 ]
+
     WRITE a;
     WRITE b;
 
-    testtest(a, a, a);
+    testtest(a, b, c);
+    [ x = 10
+      y = 70
+      z = 10 ]
+
     WRITE a;
+    WRITE b;
+    WRITE c;
 END

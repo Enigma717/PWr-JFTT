@@ -1,16 +1,25 @@
 PROGRAM IS
-VAR b, c, d
+VAR a, b, c, d
 BEGIN 
-    b := 2;
-    c := 1024;
-    d := 0;
+    a := 1;
+    b := 0;
 
-        c := c / b;
-    WHILE d < 2 DO
-        b := b + 1;
-        c := c / b;
-        d := d + 1;
-    ENDWHILE
+    c := a / b;
+    WRITE c;
 
+    c := b / a;
+    WRITE c;
+
+    c := b / b;
+    WRITE c;
+
+
+    c := a % b;
+    WRITE c;
+
+    c := b % a;
+    WRITE c;
+
+    c := b % b;
     WRITE c;
 END

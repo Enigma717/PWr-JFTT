@@ -23,6 +23,13 @@ public:
     Variable(string name);
 };
 
+class Parameter {
+public:
+    string          mParIdentifier;
+    long long int   mParValue;
+
+    Parameter(string name);
+};
 
 class Procedure {
 public:
@@ -37,8 +44,9 @@ class SymTabNode {
 public:
     enum NodeType {
         kProcedure  = 1, 
-        kVariable   = 2, 
-        kNumber     = 3
+        kParameter  = 2, 
+        kVariable   = 3, 
+        kNumber     = 4
     };
 
     NodeType        mNodeType;
@@ -49,6 +57,7 @@ public:
     bool            mNodeIsInitialized;
 
     SymTabNode(Variable var);
+    SymTabNode(Parameter par);
     SymTabNode(Procedure proc);
     SymTabNode(string numberString);
 };

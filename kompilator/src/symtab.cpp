@@ -12,18 +12,6 @@
 #include "./symtab.h"
 
 
-int insertProcToSymTab(vector<SymTabNode> &symTab, string identifier)
-{
-    int memoryIndex = symTab.size();
-
-    Procedure proc(identifier, memoryIndex);
-    SymTabNode node(proc);
-
-    symTab.push_back(node);
-
-    return memoryIndex;
-}
-
 int insertVarToSymTab(vector<SymTabNode> &symTab, string identifier)
 {
     int memoryIndex = symTab.size();
@@ -32,6 +20,31 @@ int insertVarToSymTab(vector<SymTabNode> &symTab, string identifier)
     SymTabNode node(var);
 
     node.mNodeIndex = memoryIndex;
+    symTab.push_back(node);
+
+    return memoryIndex;
+}
+
+int insertParToSymTab(vector<SymTabNode> &symTab, string identifier)
+{
+    int memoryIndex = symTab.size();
+
+    Parameter par(identifier);
+    SymTabNode node(par);
+
+    node.mNodeIndex = memoryIndex;
+    symTab.push_back(node);
+
+    return memoryIndex;
+}
+
+int insertProcToSymTab(vector<SymTabNode> &symTab, string identifier)
+{
+    int memoryIndex = symTab.size();
+
+    Procedure proc(identifier, memoryIndex);
+    SymTabNode node(proc);
+
     symTab.push_back(node);
 
     return memoryIndex;

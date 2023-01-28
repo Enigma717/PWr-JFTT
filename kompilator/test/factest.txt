@@ -8,6 +8,7 @@ BEGIN
     WHILE n >= x DO
         result := result * x;
         x := x + 1;
-        WRITE result;
     ENDWHILE
+    
+    WRITE result;
 END

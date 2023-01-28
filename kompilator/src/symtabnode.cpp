@@ -14,24 +14,36 @@ Variable::Variable(string name) : mVarIdentifier(name)
     mVarValue = -1;
 }
 
+Parameter::Parameter(string name) : mParIdentifier(name)
+{
+    mParValue = -1;
+}
 
 Procedure::Procedure(string name, int index) : 
     mProcIdentifier(name), mProcMemoryIndex(index) {}
 
+
+SymTabNode::SymTabNode(Variable var) : 
+    mNodeIdentifier(var.mVarIdentifier), mNodeValue(var.mVarValue) 
+{
+    mNodeType = SymTabNode::kVariable;
+    mNodeParamCount = 0;
+    mNodeIsInitialized = false;
+}
+
+SymTabNode::SymTabNode(Parameter par) : 
+    mNodeIdentifier(par.mParIdentifier), mNodeValue(par.mParValue) 
+{
+    mNodeType = SymTabNode::kParameter;
+    mNodeParamCount = 0;
+    mNodeIsInitialized = false;
+}
 
 SymTabNode::SymTabNode(Procedure proc) :
     mNodeIdentifier(proc.mProcIdentifier), mNodeIndex(proc.mProcMemoryIndex) 
 {
     mNodeType = SymTabNode::kProcedure;
     mNodeValue = -1;
-    mNodeParamCount = 0;
-    mNodeIsInitialized = false;
-}
-
-SymTabNode::SymTabNode(Variable var) : 
-    mNodeIdentifier(var.mVarIdentifier), mNodeValue(var.mVarValue) 
-{
-    mNodeType = SymTabNode::kVariable;
     mNodeParamCount = 0;
     mNodeIsInitialized = false;
 }

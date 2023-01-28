@@ -81,6 +81,10 @@ void pushInstruction(vector<ASM> &code, ASM::InstructionType type, long long int
 
 void addConstants(vector<ASM> &code, vector<SymTabNode> &symTab);
 
+void createStore(vector<ASM> &code, vector<SymTabNode> &symTab, int nodeIndex);
+void createLoad(vector<ASM> &code, vector<SymTabNode> &symTab, int nodeIndex);
+void createAdd(vector<ASM> &code, vector<SymTabNode> &symTab, int nodeIndex);
+void createSub(vector<ASM> &code, vector<SymTabNode> &symTab, int nodeIndex);
 
 void createNewProcedure(vector<ASM> &code, vector<SymTabNode> &symTab, ASTree *tree);
 

@@ -92,7 +92,7 @@ int main(int argc, char** argv)
 {
     if (argc < 2)
     {
-        std::cerr << "\n\t\033[31m[ERROR] Nie podano pliku źródłowego\033[0m\n\n";
+        std::cerr << "\n\t\033[31m[ERROR] \033[32mNie podano pliku źródłowego\033[0m\n\n";
         return 1;
     }
 
@@ -107,8 +107,7 @@ int main(int argc, char** argv)
     if (!io)
     {
         string fileName(argv[1]);
-        string errorMsg = "[ERROR] Nie udało się otworzyć pliku \'" + fileName + "\'"; 
-        std::cerr << "\n\t\033[31m" << errorMsg << "\033[0m\n\n";
+        std::cerr << "\n\t\033[31m[ERROR] \033[32mNie udało się otworzyć pliku \'" << fileName<< "\'\033[0m\n\n";
         return 1;
     }
 

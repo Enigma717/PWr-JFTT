@@ -109,16 +109,16 @@ NUMBER                      [0-9]+
 
     /* Parametry formalne procedury */
 <PROC_PARAMS>{IDENTIFIER}   {
-                                string varId(yytext, yyleng);
+                                string parId(yytext, yyleng);
                                 paramCount++;
     
-                                if (seekNodeInSymTab(symbolTable, varId, scope) == -1)
+                                if (seekNodeInSymTab(symbolTable, parId, scope) == -1)
                                 {
-                                    yylval.tab_index = insertVarToSymTab(symbolTable, varId);
+                                    yylval.tab_index = insertParToSymTab(symbolTable, parId);
                                 }
                                 else
                                 {
-                                    string errorMsg = "Redeklaracja zmiennej \'" + varId + "\'";
+                                    string errorMsg = "Redeklaracja zmiennej \'" + parId + "\'";
                                     yyerror(symbolTable, programTree, errorMsg);
                                 }
 

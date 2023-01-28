@@ -16,8 +16,9 @@
 using std::vector;
 
 
-int insertProcToSymTab(vector<SymTabNode> &symTab, string identifier);
 int insertVarToSymTab(vector<SymTabNode> &symTab, string identifier);
+int insertParToSymTab(vector<SymTabNode> &symTab, string identifier);
+int insertProcToSymTab(vector<SymTabNode> &symTab, string identifier);
 int insertNumToSymTab(vector<SymTabNode> &symTab, string numberString);
 
 int seekNodeInSymTab(vector<SymTabNode> &symTab, string identifier);
