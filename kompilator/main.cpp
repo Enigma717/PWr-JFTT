@@ -12,7 +12,7 @@
 #include "./asm/asm.h"
 
 
-using std::cout;
+using std::cout, std::cerr;
 
 
 const string kColorReset  = "\033[0m";
@@ -27,8 +27,8 @@ int main(int argc, char** argv)
 {
     if (argc < 2)
     {
-        std::cerr << kColorRed << "\n\t[ERROR] " << kColorGreen << "Nie podano pliku źródłowego" << kColorReset;
-        std::cout << kColorBlue << "\n\n\t[INFO] " << kColorGreen << "Prawidłowe wywołanie: ./compiler [input] [output (default = ./output.mr)]\n\n" << kColorReset;
+        cerr << kColorRed << "\n\t[ERROR] " << kColorGreen << "Nie podano pliku źródłowego" << kColorReset;
+        cout << kColorBlue << "\n\n\t[INFO] " << kColorGreen << "Prawidłowe wywołanie: ./compiler [input] [output (default = ./output.mr)]\n\n" << kColorReset;
         return 1;
     }
 
@@ -45,22 +45,22 @@ int main(int argc, char** argv)
 
     if (!io)
     {
-        std::cerr << kColorRed << "\n\t[ERROR] " << kColorGreen << "Nie udało się otworzyć pliku \'" << fileName<< "\'\n\n" << kColorReset;
+        cerr << kColorRed << "\n\t[ERROR] " << kColorGreen << "Nie udało się otworzyć pliku \'" << fileName<< "\'\n\n" << kColorReset;
         return 1;
     }
 
-    std::cout << kColorBlue << "\n\t[INFO] " << kColorGreen << "Rozpoczęcie kompilacji pliku: " << fileName << kColorReset;
-    std::cout << kColorBlue << "\n\t\t[INFO] " << kColorGreen << "Rozpoczęcie parsowania..." << kColorReset;
+    cout << kColorBlue << "\n\t[INFO] " << kColorGreen << "Rozpoczęcie kompilacji pliku: " << fileName << kColorReset;
+    cout << kColorBlue << "\n\t\t[INFO] " << kColorGreen << "Rozpoczęcie parsowania..." << kColorReset;
     
     run_parser(io, symbolTable, programSyntax);
     fclose(io);
     
-    std::cout << kColorBlue << "\n\t\t\t[INFO] " << kColorGreen << "Parsowanie ukończone pomyślnie" << kColorReset;
+    cout << kColorBlue << "\n\t\t\t[INFO] " << kColorGreen << "Parsowanie ukończone pomyślnie" << kColorReset;
 
     
     // Generowanie kodu asemblerowego
 
-    std::string oFileName;
+    string oFileName;
     std::ofstream outputFile;
 
     if (argv[2])
@@ -74,18 +74,18 @@ int main(int argc, char** argv)
 
     outputFile.open(oFileName);
 
-    std::cout << kColorBlue << "\n\t\t[INFO] " << kColorGreen << "Rozpoczęcie generowania kodu..." << kColorReset;
+    cout << kColorBlue << "\n\t\t[INFO] " << kColorGreen << "Rozpoczęcie generowania kodu..." << kColorReset;
 
     addConstants(programCode, symbolTable);
     generateCode(programCode, symbolTable, &programSyntax, programCode.size());
     pushInstruction(programCode, ASM::kHalt);
-    std::cout << kColorBlue << "\n\t\t\t[INFO] " << kColorGreen << "Generowanie kodu ukończone pomyślnie" << kColorReset;
+    cout << kColorBlue << "\n\t\t\t[INFO] " << kColorGreen << "Generowanie kodu ukończone pomyślnie" << kColorReset;
     saveCodeToFile(outputFile, programCode);
 
     outputFile.close();
 
-    std::cout << kColorBlue << "\n\t[INFO] " << kColorGreen << "Kompilacja ukończona pomyślnie" << kColorReset;
-    std::cout << kColorBlue << "\n\n\n\t[INFO] " << kColorGreen << "Kod wynikowy został zapisany w pliku: " << oFileName << "\n\n" << kColorReset;
+    cout << kColorBlue << "\n\t[INFO] " << kColorGreen << "Kompilacja ukończona pomyślnie" << kColorReset;
+    cout << kColorBlue << "\n\n\n\t[INFO] " << kColorGreen << "Kod wynikowy został zapisany w pliku: " << oFileName << "\n\n" << kColorReset;
 
 
     return 0;
