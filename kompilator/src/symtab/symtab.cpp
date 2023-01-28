@@ -12,6 +12,10 @@
 #include "./symtab.h"
 
 
+//////////////////////////////////////////////
+// Tworzenie nowego węzła w tablicy symboli //
+//////////////////////////////////////////////
+
 int insertVarToSymTab(vector<SymTabNode> &symTab, string identifier)
 {
     int memoryIndex = symTab.size();
@@ -62,6 +66,10 @@ int insertNumToSymTab(vector<SymTabNode> &symTab, string numberString)
     return memoryIndex;
 }
 
+
+//////////////////////////////////////
+// Szukanie węzła w tablicy symboli //
+//////////////////////////////////////
 
 int seekNodeInSymTab(vector<SymTabNode> &symTab, string identifier)
 {

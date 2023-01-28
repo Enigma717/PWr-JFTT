@@ -9,116 +9,59 @@
 #include <iostream>
 #include <fstream>
 
-#include "./symtab.h"
-#include "./astree.h"
-#include "./asm.cpp"
+#include "./symtab/symtab.h"
+#include "./ast/astree.h"
+#include "./asm/asm.cpp"
 
 
 using std::cout;
 
 
+const string kColorReset  = "\033[0m";
+const string kColorRed    = "\033[31m";
+const string kColorGreen  = "\033[32m";
+const string kColorBlue   = "\033[34m";
+
 extern void run_parser(FILE *file, vector<SymTabNode> &symbolTable, ASTree &programTree);
-extern void yyerror(vector<SymTabNode> &symbolTable, ASTree &programTree, string s);
-
-
-map<ASTree::TreeType, std::string> ASTreeTypesStrings = {
-    {ASTree::kIdentifier,       "Identifier"},
-    {ASTree::kNumber,           "Number"},
-    {ASTree::kEqual,            "Equal"},
-    {ASTree::kNotEqual,         "NotEqual"},
-    {ASTree::kGreater,          "Greater"},
-    {ASTree::kLess,             "Less"},
-    {ASTree::kGreaterEqual,     "GreaterEqual"},
-    {ASTree::kLessEqual,        "LessEqual"},
-    {ASTree::kAddition,         "Add"},
-    {ASTree::kSubtraction,      "Sub"},
-    {ASTree::kMultiplication,   "Mul"},
-    {ASTree::kDivision,         "Div"},
-    {ASTree::kModulo,           "Mod"},
-    {ASTree::kDeclarations,     "Declarations"},
-    {ASTree::kParameters,       "Parameters"},
-    {ASTree::kNewProcedure,     "NewProc"},
-    {ASTree::kCallProcedure,    "CallProc"},
-    {ASTree::kWrite,            "Write"},
-    {ASTree::kRead,             "Read"},
-    {ASTree::kCall,             "Call"},
-    {ASTree::kAssign,           "Assign"},
-    {ASTree::kRepeatLoop,       "Repeat"},
-    {ASTree::kWhileLoop,        "While"},
-    {ASTree::kIfCond,           "If"},
-    {ASTree::kIfElseCond,       "IfElse"},
-    {ASTree::kCommands,         "Commands"},
-    {ASTree::kMain,             "Main"},
-    {ASTree::kProcedures,       "Procedures"},
-    {ASTree::kProgram,          "Program"}
-};
-
-
-void printPreorder(vector<SymTabNode> symbolTable, ASTree *tree, int depth)
-{
-    if (tree == NULL)
-    {
-        return;
-    }
-
-    std::cout << "DEPTH: " << depth;
-
-    for (int i = 0; i <= depth; i++)
-    {
-        std::cout << "    ";
-    }
-
-    std::cout << ">> " << ASTreeTypesStrings[tree->mTreeType] 
-              << "\t\tIndex: " << tree->mTreeMemoryIndex
-              << "\tBranchesCount: " << tree->mTreeBranchesCount;
-    if (tree->mTreeMemoryIndex != -1)
-    {
-        std::cout << "\t-> Var ID: " << symbolTable[tree->mTreeMemoryIndex].mNodeIdentifier
-                  << "\tVar value: " << symbolTable[tree->mTreeMemoryIndex].mNodeValue;
-    }
-    std::cout << "\n";
-    
-    
-    depth++;
-
-    for (ASTree *subTree : tree->mTreeBranches)
-    {
-        printPreorder(symbolTable, subTree, depth);
-    }
-}
 
 
 int main(int argc, char** argv)
 {
     if (argc < 2)
     {
-        std::cerr << "\n\t\033[31m[ERROR] \033[32mNie podano pliku źródłowego\033[0m\n\n";
+        std::cerr << kColorRed << "\n\t[ERROR] " << kColorGreen << "Nie podano pliku źródłowego\n\n" << kColorReset;
+        std::cout << kColorBlue << "\n\t[INFO] " << kColorGreen << "Prawidłowe wywołanie: ./compiler [input] [output (default = ./output.mr)]" << kColorReset;
         return 1;
     }
-
 
     ASTree programSyntax(ASTree::kProgram, -1, 0, {});
     vector<SymTabNode> symbolTable;
     vector<ASM> programCode;
 
 
+    // Rozpoczęcie parsowania
+
     FILE *io = fopen(argv[1], "r");
     
+    string fileName(argv[1]);
+
     if (!io)
     {
-        string fileName(argv[1]);
-        std::cerr << "\n\t\033[31m[ERROR] \033[32mNie udało się otworzyć pliku \'" << fileName<< "\'\033[0m\n\n";
+        std::cerr << kColorRed << "\n\t[ERROR] " << kColorGreen << "Nie udało się otworzyć pliku \'" << fileName<< "\'\n\n" << kColorReset;
         return 1;
     }
 
+    std::cout << kColorBlue << "\n\t[INFO] " << kColorGreen << "Rozpoczęcie kompilacji pliku: " << fileName << kColorReset;
+    std::cout << kColorBlue << "\n\n\t\t[INFO] " << kColorGreen << "Rozpoczęcie parsowania..." << kColorReset;
+    
     run_parser(io, symbolTable, programSyntax);
     fclose(io);
-
-
-    cout << "\n\nASTREE:\n";
-    printPreorder(symbolTable, &programSyntax, 0);
+    
+    std::cout << kColorBlue << "\n\t\t\t[INFO] " << kColorGreen << "Parsowanie ukończone pomyślnie" << kColorReset;
 
     
+    // Rozpoczęcie generowania kodu
+
     std::string oFileName;
     std::ofstream outputFile;
 
@@ -133,34 +76,18 @@ int main(int argc, char** argv)
 
     outputFile.open(oFileName);
 
- 
+    std::cout << kColorBlue << "\n\n\t\t[INFO] " << kColorGreen << "Rozpoczęcie generowania kodu..." << kColorReset;
 
     addConstants(programCode, symbolTable);
-    
     generateCode(programCode, symbolTable, &programSyntax, programCode.size());
-
     pushInstruction(programCode, ASM::kHalt);
-
-
-    cout << "\n\nAFTER CODEGEN:\n";
-
-
+    std::cout << kColorBlue << "\n\t\t\t[INFO] " << kColorGreen << "Generowanie kodu ukończone pomyślnie\n" << kColorReset;
     saveCodeToFile(outputFile, programCode);
 
-
-    for (SymTabNode node : symbolTable)
-    {
-        cout << "\n>> Variable -> type: " << node.mNodeType 
-             << "\tID: " << node.mNodeIdentifier 
-             << "\t\tValue: " << node.mNodeValue 
-             << "\tIndex: " << node.mNodeIndex
-             << "\tParamCount: " << node.mNodeParamCount; 
-    }
-
-    cout << "\n\n";
-
-
     outputFile.close();
+
+    std::cout << kColorBlue << "\n\t[INFO] " << kColorGreen << "Kompilacja ukończona pomyślnie" << kColorReset;
+    std::cout << kColorBlue << "\n\n\n\t[INFO] " << kColorGreen << "Kod wynikowy został zapisany w pliku: " << oFileName << "\n\n" << kColorReset;
 
 
     return 0;

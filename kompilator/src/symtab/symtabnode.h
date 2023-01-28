@@ -2,7 +2,7 @@
     Autor:      Marek Traczyński (261748)
     Kurs:       Języki Formalne i Techniki Translacji
     Projekt:    Kompilator
-    Opis pliku: Klasy elementów tablicy symboli (header)
+    Opis pliku: Klasa węzłów tablicy symboli (header)
 */
 
 
@@ -20,7 +20,7 @@ public:
     string          mVarIdentifier;
     long long int   mVarValue;
 
-    Variable(string name);
+    Variable(string identifier);
 };
 
 class Parameter {
@@ -28,7 +28,7 @@ public:
     string          mParIdentifier;
     long long int   mParValue;
 
-    Parameter(string name);
+    Parameter(string identifier);
 };
 
 class Procedure {
@@ -36,17 +36,17 @@ public:
     string          mProcIdentifier;
     int             mProcMemoryIndex;
 
-    Procedure(string name, int index);
+    Procedure(string identifier, int index);
 };
 
 
 class SymTabNode {
 public:
     enum NodeType {
-        kProcedure  = 1, 
-        kParameter  = 2, 
-        kVariable   = 3, 
-        kNumber     = 4
+        kProcedure = 1, 
+        kParameter = 2, 
+        kVariable  = 3, 
+        kNumber    = 4
     };
 
     NodeType        mNodeType;

@@ -1,11 +1,23 @@
+CPPFLAGS = -W -pedantic -std=c++17
+
+FRONT_DIR  = ./frontend
+ASM_DIR    = ./asm
+AST_DIR    = ./ast
+SYMTAB_DIR = ./symtab
+
+
 all: bison flex
-	g++ -W -pedantic --std=c++17 -o compiler main.cpp ./frontend/parser.cpp ./frontend/lexer.c
+	$(CXX) $(FLAGS) -o compiler main.cpp \
+						$(FRONT_DIR)/parser.cpp $(FRONT_DIR)/lexer.c \
+						$(ASM_DIR)/asm.cpp \
+						$(AST_DIR)/astree.cpp \
+						$(SYMTAB_DIR)/symtab.cpp $(SYMTAB_DIR)/symtabnode.cpp
+
+flex: 
+	flex -o $(FRONT_DIR)/lexer.c $(FRONT_DIR)/lexer.l
 
 bison:
-	bison -Wall -d -o ./frontend/parser.cpp ./frontend/parser.ypp
-
-flex:
-	flex -o ./frontend/lexer.c ./frontend/lexer.l
+	bison -Wall -d -o $(FRONT_DIR)/parser.cpp $(FRONT_DIR)/parser.ypp
 
 clean:
-	rm ./frontend/parser.cpp ./frontend/parser.hpp ./frontend/lexer.c
+	rm $(FRONT_DIR)/parser.cpp $(FRONT_DIR)/parser.hpp $(FRONT_DIR)/lexer.c
