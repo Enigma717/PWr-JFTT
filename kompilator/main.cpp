@@ -9,9 +9,7 @@
 #include <iostream>
 #include <fstream>
 
-#include "./symtab/symtab.h"
-#include "./ast/astree.h"
-#include "./asm/asm.cpp"
+#include "./asm/asm.h"
 
 
 using std::cout;
@@ -29,8 +27,8 @@ int main(int argc, char** argv)
 {
     if (argc < 2)
     {
-        std::cerr << kColorRed << "\n\t[ERROR] " << kColorGreen << "Nie podano pliku źródłowego\n\n" << kColorReset;
-        std::cout << kColorBlue << "\n\t[INFO] " << kColorGreen << "Prawidłowe wywołanie: ./compiler [input] [output (default = ./output.mr)]" << kColorReset;
+        std::cerr << kColorRed << "\n\t[ERROR] " << kColorGreen << "Nie podano pliku źródłowego" << kColorReset;
+        std::cout << kColorBlue << "\n\n\t[INFO] " << kColorGreen << "Prawidłowe wywołanie: ./compiler [input] [output (default = ./output.mr)]\n\n" << kColorReset;
         return 1;
     }
 
@@ -39,7 +37,7 @@ int main(int argc, char** argv)
     vector<ASM> programCode;
 
 
-    // Rozpoczęcie parsowania
+    // Parsowanie podanego pliku źródłowego
 
     FILE *io = fopen(argv[1], "r");
     
@@ -52,7 +50,7 @@ int main(int argc, char** argv)
     }
 
     std::cout << kColorBlue << "\n\t[INFO] " << kColorGreen << "Rozpoczęcie kompilacji pliku: " << fileName << kColorReset;
-    std::cout << kColorBlue << "\n\n\t\t[INFO] " << kColorGreen << "Rozpoczęcie parsowania..." << kColorReset;
+    std::cout << kColorBlue << "\n\t\t[INFO] " << kColorGreen << "Rozpoczęcie parsowania..." << kColorReset;
     
     run_parser(io, symbolTable, programSyntax);
     fclose(io);
@@ -60,7 +58,7 @@ int main(int argc, char** argv)
     std::cout << kColorBlue << "\n\t\t\t[INFO] " << kColorGreen << "Parsowanie ukończone pomyślnie" << kColorReset;
 
     
-    // Rozpoczęcie generowania kodu
+    // Generowanie kodu asemblerowego
 
     std::string oFileName;
     std::ofstream outputFile;
@@ -76,12 +74,12 @@ int main(int argc, char** argv)
 
     outputFile.open(oFileName);
 
-    std::cout << kColorBlue << "\n\n\t\t[INFO] " << kColorGreen << "Rozpoczęcie generowania kodu..." << kColorReset;
+    std::cout << kColorBlue << "\n\t\t[INFO] " << kColorGreen << "Rozpoczęcie generowania kodu..." << kColorReset;
 
     addConstants(programCode, symbolTable);
     generateCode(programCode, symbolTable, &programSyntax, programCode.size());
     pushInstruction(programCode, ASM::kHalt);
-    std::cout << kColorBlue << "\n\t\t\t[INFO] " << kColorGreen << "Generowanie kodu ukończone pomyślnie\n" << kColorReset;
+    std::cout << kColorBlue << "\n\t\t\t[INFO] " << kColorGreen << "Generowanie kodu ukończone pomyślnie" << kColorReset;
     saveCodeToFile(outputFile, programCode);
 
     outputFile.close();

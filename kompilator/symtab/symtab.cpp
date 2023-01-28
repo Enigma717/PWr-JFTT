@@ -8,7 +8,6 @@
 
 #include <algorithm>
 
-#include "./symtabnode.cpp"
 #include "./symtab.h"
 
 

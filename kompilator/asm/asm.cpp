@@ -7,6 +7,7 @@
 
 
 #include <algorithm>
+#include <fstream>
 
 #include "./asm.h"
 
@@ -21,6 +22,26 @@ map<string, long long int> procsStarts;
 bool proceduresFlag = false;
 int procOutOffset   = 1;
 int asmLoopDepth    = 0;
+
+map<ASM::InstructionType, std::string> ASMInstructionsStrings = {
+    {ASM::kGet,     "GET"},
+    {ASM::kPut,     "PUT"},
+    {ASM::kLoad,    "LOAD"},
+    {ASM::kStore,   "STORE"},
+    {ASM::kLoadI,   "LOADI"},
+    {ASM::kStoreI,  "STOREI"},
+    {ASM::kAdd,     "ADD"},
+    {ASM::kSub,     "SUB"},
+    {ASM::kAddI,    "ADDI"},
+    {ASM::kSubI,    "SUBI"},
+    {ASM::kSet,     "SET"},
+    {ASM::kHalf,    "HALF"},
+    {ASM::kJump,    "JUMP"},
+    {ASM::kJPos,    "JPOS"},
+    {ASM::kJZero,   "JZERO"},
+    {ASM::kJumpI,   "JUMPI"},
+    {ASM::kHalt,    "HALT"},
+};
 
 
 ////////////////////////////

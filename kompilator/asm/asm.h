@@ -13,6 +13,7 @@
 #include <map>
 
 #include "../symtab/symtab.h"
+#include "../ast/astree.h"
 
 using std::map;
 
@@ -48,27 +49,6 @@ public:
 
     ASM(InstructionType instruction);
     ASM(InstructionType instruction, long long int argument);
-};
-
-
-map<ASM::InstructionType, std::string> ASMInstructionsStrings = {
-    {ASM::kGet,     "GET"},
-    {ASM::kPut,     "PUT"},
-    {ASM::kLoad,    "LOAD"},
-    {ASM::kStore,   "STORE"},
-    {ASM::kLoadI,   "LOADI"},
-    {ASM::kStoreI,  "STOREI"},
-    {ASM::kAdd,     "ADD"},
-    {ASM::kSub,     "SUB"},
-    {ASM::kAddI,    "ADDI"},
-    {ASM::kSubI,    "SUBI"},
-    {ASM::kSet,     "SET"},
-    {ASM::kHalf,    "HALF"},
-    {ASM::kJump,    "JUMP"},
-    {ASM::kJPos,    "JPOS"},
-    {ASM::kJZero,   "JZERO"},
-    {ASM::kJumpI,   "JUMPI"},
-    {ASM::kHalt,    "HALT"},
 };
 
 

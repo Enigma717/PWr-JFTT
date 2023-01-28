@@ -7,7 +7,7 @@
 
 
 %{
-    #include "../symtab/symtab.cpp"
+    #include "../symtab/symtab.h"
     #include "./parser.hpp"
 
     extern string currentProc;
@@ -177,7 +177,7 @@ NUMBER                      [0-9]+
                                 return T_IDENTIFIER; 
                             }
 <VAR_DECLARE>","            {           return yylval.token = T_COMMA; }
-<VAR_DECLARE>"BEGIN"        { yylineno++; BEGIN(0); return yylval.token = T_BEGIN; }
+<VAR_DECLARE>"BEGIN"        { BEGIN(0); return yylval.token = T_BEGIN; }
 
 
     /* Liczby */

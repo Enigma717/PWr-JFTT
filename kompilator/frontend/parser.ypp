@@ -21,12 +21,10 @@
 
 %{
     #include <iostream>
-    #include <vector>
     
-    #include "../ast/astree.cpp"
+    #include "../ast/astree.h"
     #include "../symtab/symtab.h"
 
-    using std::vector;
 
     extern int yylineno;
     extern FILE* yyin;
